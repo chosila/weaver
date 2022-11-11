@@ -36,9 +36,9 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
 conda activate weaver
 mkdir output
 
-python train.py --data-train '/cms/data/abrinke1/CMSSW/HiggsToAA/ParticleNet/CMSSW_10_6_30/src/DeepNTuples/Ntupler/output/*root' --data-config data/Hto4b_ak8_points_pf_sf_full.yaml --network-config networks/Hto4b_particle_net_pf_sv.py --num-epochs 5 --model-prefix output/M-20
+python train.py --data-train '/cms/data/abrinke1/CMSSW/HiggsToAA/ParticleNet/CMSSW_10_6_30/src/DeepNTuples/Ntupler/output/*root' --data-config data/Hto4b_ak8_points_pf_sf_full.yaml --network-config networks/particle_net_pf_sv.py --num-epochs 5 --model-prefix output/M-20
 
-python train.py --predict --data-test '/cms/data/abrinke1/CMSSW/HiggsToAA/ParticleNet/CMSSW_10_6_30/src/DeepNTuples/Ntupler/output/*root' --data-config data/Hto4b_ak8_points_pf_sf_full.yaml --network-config networks/Hto4b_particle_net_pf_sv.py --model-prefix output/ --predict-output output/predict_M-20.root
+python train.py --predict --data-test '/cms/data/abrinke1/CMSSW/HiggsToAA/ParticleNet/CMSSW_10_6_30/src/DeepNTuples/Ntupler/output/*root' --data-config data/Hto4b_ak8_points_pf_sf_full.yaml --network-config networks/particle_net_pf_sv.py --model-prefix output/ --predict-output output/predict_M-20.root
 
 -----------------------------------------------------------------------------------
 
