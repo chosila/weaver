@@ -1,5 +1,5 @@
 selection:
-   (fj_pt > 200) & (fj_pt < 450) & (fj_mass > 50) & (pfMassDecorrelatedParticleNetDiscriminatorsJetTags_XbbvsQCD > 0.1) & ((event_no % 2) == 0)
+   (fj_pt > 200) & (fj_mass > 50) & (pfMassDecorrelatedParticleNetDiscriminatorsJetTags_XbbvsQCD > 0.1) & ((event_no % 2) == 0)
 
 test_time_selection:
    (fj_mass > 0)
@@ -79,11 +79,14 @@ labels:
    value: [
       label_H_aa_bbbb,
       label_H_aa_other,
-      label_QCD_bEnr
+      sample_isQCD
       ]
 
 observers:
    - event_no
+   - label_QCD_BGen
+   - label_QCD_bEnr
+   - sample_min_LHE_HT
    - fj_pt
    - fj_eta
    - fj_mass
@@ -94,6 +97,7 @@ observers:
    - fj_genjet_pt
    - fj_genjet_mass
    - fj_genjet_sdmass
+   - fj_gen_H_aa_bbbb_mass_a
    - fj_gen_H_aa_bbbb_dR_max_b
    - fj_gen_H_aa_bbbb_pt_min_b
    - pfParticleNetMassRegressionJetTags_mass
