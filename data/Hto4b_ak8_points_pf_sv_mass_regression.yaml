@@ -77,7 +77,7 @@ inputs:
 labels:
    type: custom
    value: 
-      target_mass: fj_gen_H_aa_bbbb_mass_a
+      target_mass: fj_gen_H_aa_bbbb_mass_a1
 
 observers:
    - event_no
@@ -99,7 +99,10 @@ observers:
    - fj_genjet_pt
    - fj_genjet_mass
    - fj_genjet_sdmass
-   - fj_gen_H_aa_bbbb_mass_a
+   - fj_gen_H_aa_bbbb_mass_a1
+   - fj_gen_H_aa_bbbb_mass_a2
+   - fj_gen_H_aa_bbbb_mass_H
+   - fj_gen_H_aa_bbbb_mass_H_calc
    - fj_gen_H_aa_bbbb_dR_max_b
    - fj_gen_H_aa_bbbb_pt_min_b
    - pfParticleNetMassRegressionJetTags_mass
