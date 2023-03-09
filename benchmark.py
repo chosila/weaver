@@ -7,6 +7,7 @@ import matplotlib as mpl
 import os
 #import pandas 
 
+
 def main():
     predType = 'regr'
 
@@ -64,7 +65,7 @@ def main():
 
     
     mods = ['logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
-    
+    #mods = ['logMass', '1OverMass', 'logMassOverPT', 'ptOverMass']
     ## rms and mms vs masspoint figs 
     fig1, ax1 = plt.subplots()
     fig2, ax2 = plt.subplots()
@@ -88,19 +89,31 @@ def main():
         rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2) 
         ax1.plot(masspoints, rms, label=mod)
         ax2.plot(masspoints, mms, label=mod) 
+    
 
+    
+        
+    ## adding the only mass training to the rms plots 
+    fns = [f'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-{x}_numEvent20000.root' for x in mp1+mp2]
+    rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fns)
+    ax1.plot(masspoints, rms, label='mass')
+    ax2.plot(masspoints, rms, label='mass')
+
+    #ax1.set_yticks(ax1.get_yticks()[::4])
+    #ax2.set_yticks(ax2.get_yticks()[::4])
+    
     ax1.legend()
     ax2.legend()
-    ax1.set_title(f'{mod} RMS vs mass')
+    ax1.set_title(f'RMS vs mass')
     ax1.set_xlabel('mass (GeV)')
     ax1.set_ylabel('RMS')
-    ax2.set_title(f'{mod} MMS vs mass')
+    ax2.set_title(f'MMS vs mass')
     ax2.set_ylabel('MMS')
     ax2.set_xlabel('mass (Gev)')
 
-    fig1.savefig(f'plots/RMS_masspoints_{mod}.png', bbox_inches='tight')
-    fig2.savefig(f'plots/MMS_masspoints_{mod}.png', bbox_inches='tight')
-
+    fig1.savefig(f'plots/RMS_masspoints_.png', bbox_inches='tight')
+    fig2.savefig(f'plots/MMS_masspoints.png', bbox_inches='tight')
+ 
     import sys
     sys.exit()
 
@@ -183,7 +196,7 @@ def main():
                 tpArr.append(tp)
                 tpfnArr.append(tp+fn)
                 #tprAtPt.append(tp / (tp + fn))
-        
+                           
             #tprAtPt = np.nan_to_num(np.array(tprAtPt), nan=0.0)
             # pt efficiency plot
             log = not ('bbbb' in name)
@@ -205,7 +218,7 @@ def makeEfficiencyPlot(title, xlabel, ylabel, binCenter, tpArr, tpfnArr, pltname
     if log: ax1.set_yscale('log')
     ax1.legend()
     plt.savefig(f'plots/{pltname}.png')
-
+    plt.close(fig1)
 
 def getBinCenter(edges):
     left = edges[:-1]
@@ -245,7 +258,7 @@ def make1DDist(fl, titles, plotnames, labels):
         mms = np.mean(np.log2(output/target))
         mmsList.append(f'{mms:.4f}')
         rmsList.append(np.std(np.log2(output/target)))
-
+        
 
     ax3.table(
         colLabels=labels,
@@ -268,7 +281,6 @@ def make1DDist(fl, titles, plotnames, labels):
     plt.close('all')
 
 def returnToMass(output, target, pt, fn):
-
     if 'logMass' in fn:
         output = np.exp(output)
         target = np.exp(target)
@@ -277,7 +289,8 @@ def returnToMass(output, target, pt, fn):
         target = 1/target 
     if 'massOverPT' in fn:
         output = output*pt
-        target = output*pt
+        target = target*pt
+        output[output < 0] = 0
         #binrange = (-2,2)
     if 'LogMassOverPT' in fn:
         output = np.exp(output*pt)
@@ -293,8 +306,6 @@ def returnToMass(output, target, pt, fn):
 ## function that calculates rms and mms for each file and returns the value for plotting 
 ## i think it's better to receive the gen mass for each mod type and return a array of rms, mms, and mass point to use for plotting 
 def calc_RMS_MMS(masspoints, filenames):
-    #print('masspoints: ', masspoints)
-    #print('filenames: ', filenames)
     df = pd.DataFrame(masspoints, columns=['masspoints'])
     df['filenames'] = filenames
     df.sort_values(by='masspoints', ignore_index=True, inplace=True)
@@ -308,11 +319,13 @@ def calc_RMS_MMS(masspoints, filenames):
         target = g['target_mass'].array()[1::2]
         pt = g['fj_pt'].array()[1::2]
         output, target = returnToMass(output, target, pt, fn)
-        mms = np.mean(np.log2(output/target))
+        where = {'where':output>0, 'out':np.zeros_like(output)}
+        mms = np.mean(np.log2(output/target, **where))
         mmsList.append(f'{mms:.4f}')
-        rmsList.append(f'{np.std(np.log2(output/target)):4f}') 
-
-    return rmsList, mmsList, masspoints
+        rmsList.append(f'{np.std(np.log2(output/target, **where)):4f}')
+        
+    
+    return rmsList, mmsList, df['masspoints'].values.tolist()
 
 
 if __name__ == "__main__":
