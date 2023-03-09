@@ -11,31 +11,31 @@ def main():
     predType = 'regr'
 
     ## create 1D predict and target plots for each mass point of centrally produced Ntuples
-    fl2 = ['output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-15_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-25_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-35_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-45_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-55_numEvent20000.root',]
-           
-    fl1 = ['output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-12_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-20_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-30_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-40_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-50_numEvent20000.root',
-           'output/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-60_numEvent20000.root',]
-
-
-    fl3 = ['output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-12_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-20_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-30_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-40_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-60_numEvent20000.root',]
-
-    fl4 = ['output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-15_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-25_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-35_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-45_numEvent20000.root',
-           'output/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-55_numEvent20000.root'] 
+    fl2 = ['predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-15_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-25_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-35_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-45_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-55_numEvent20000.root',]
+            
+    fl1 = ['predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-12_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-20_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-30_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-40_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-50_numEvent20000.root',
+           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-60_numEvent20000.root',]
+            
+            
+    fl3 = ['predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-12_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-20_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-30_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-40_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-60_numEvent20000.root',]
+            
+    fl4 = ['predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-15_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-25_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-35_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-45_numEvent20000.root',
+           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-55_numEvent20000.root'] 
 
     titlepairs = [('a1 prediction with masses: 12, 20, 30, 40, 50, 60', 'a1 target with massses: 12, 20, 30, 40, 50, 60'), 
                   ('a1 prediction with masses: 15, 25, 35, 45, 55',     'a1 target with masses: 15, 25, 35, 45, 55 '),
@@ -46,19 +46,60 @@ def main():
                      ('prediction_a2_12.png', 'target_a2_12.png'),
                      ('prediction_a2_15.png', 'target_a2.15.png')]
 
-    for fl, titles, plotnames in zip([fl1,fl2,fl3,fl4], titlepairs, plotnamepairs):
-        make1DDist(fl, titles, plotnames)
+    labels = [['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
+              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55'],
+              ['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
+              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55']]
+
+    #for fl, titles, plotnames in zip([fl1,fl2,fl3,fl4], titlepairs, plotnamepairs):
+    #    make1DDist(fl, titles, plotnames, labels)
     ## -------------------------------- end 1D central Ntuple plots ----------------------------
 
 
 
     ## 1D Plot wide mass point Ntuples 
-    fl = 
+    #fl = None
 
+    ## -------------------------------- end 1D Wide mass ---------------------------------------
 
+    
+    mods = ['logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
+    
+    ## rms and mms vs masspoint figs 
+    fig1, ax1 = plt.subplots()
+    fig2, ax2 = plt.subplots()
 
+    ## log2(ratio) and rms vs masspoint
+    for mod in mods:
+        mp1 = [12,20,30,40,50,60]
+        mp2 = [15,25,35,45,55]
+        fn1 = [f'predict/20000/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
+        fn2 = [f'predict/20000/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
+        ## make 1d hist for the first half of the set 
+        titles = (f'predict {mod} M12,20,30,40,50,60', f'predict {mod} M12,20,30,40,50,60')
+        plotnames = (f'predict_a1_M12_{mod}.png', f'target_a1_M12_{mod}.png')
+        make1DDist(fn1, titles, plotnames, labels[0])
+        ## make 1d hist for the second half of set 
+        titles =  (f'predict {mod} M15,25,35,45,55', f'predict {mod} M15,25,35,45,55')
+        plotnames = (f'predict_a1_M15_{mod}.png', f'target_a1_M15_{mod}.png')
+        make1DDist(fn2, titles, plotnames, labels[1])
 
+        ## rms and mms vs masspoint for various mods
+        rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2) 
+        ax1.plot(masspoints, rms, label=mod)
+        ax2.plot(masspoints, mms, label=mod) 
 
+    ax1.legend()
+    ax2.legend()
+    ax1.set_title(f'{mod} RMS vs mass')
+    ax1.set_xlabel('mass (GeV)')
+    ax1.set_ylabel('RMS')
+    ax2.set_title(f'{mod} MMS vs mass')
+    ax2.set_ylabel('MMS')
+    ax2.set_xlabel('mass (Gev)')
+
+    fig1.savefig(f'plots/RMS_masspoints_{mod}.png', bbox_inches='tight')
+    fig2.savefig(f'plots/MMS_masspoints_{mod}.png', bbox_inches='tight')
 
     import sys
     sys.exit()
@@ -172,47 +213,107 @@ def getBinCenter(edges):
     return (left + right)/2
         
 
-def make1DDist(fl, titles, plotnames):
+def make1DDist(fl, titles, plotnames, labels):
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
+    fig3, ax3 = plt.subplots( )#height_ratios=[2,1])
     nbins = 50
-    binrange = (0,80)
+    binrange = None#(2,6)
+    rmsList = []
+    mmsList = []
+    if '12' in fl[0]:
+        masspoints = [12,20,30,40,50,60]
+    elif '15' in fl[0]:
+        masspoints = [15,25,35,45,55]
 
-    for fn in fl:
+    for fn, label in zip(fl, labels):
         f = uproot.open(fn)
         g = f['Events']
         output = g['output'].array()[1::2]
         target = g['target_mass'].array()[1::2]
+        pt = g['fj_pt'].array()[1::2]
+        
+        ## modify output and target back to mass if needed 
+        output, target = returnToMass(output, target, pt, fn)
+        
+        histdict = {'bins':nbins, 'range':binrange, 'histtype':'step', 'label':label}
+        ax.hist(output, **histdict)
+        ax2.hist(target,**histdict)
+        ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
+        
+        ## fill table for the mms and rms
+        mms = np.mean(np.log2(output/target))
+        mmsList.append(f'{mms:.4f}')
+        rmsList.append(np.std(np.log2(output/target)))
 
-        split = fn.split('_')
-        name = split[1] + "_" + split[7]
-        print(name)
-        ax.hist(output, bins=nbins, range=binrange, histtype='step', label=f'{split[7]}')
-        ax2.hist(target, bins=nbins, range=binrange, histtype='step', label=f'{split[7]}')
+
+    ax3.table(
+        colLabels=labels,
+        rowLabels=['MMS', 'RMS'],
+        cellText = [mmsList, rmsList],
+        bbox=[0.1, -0.3, 0.9, 0.2]
+    )
+    
+    #plt.subplots_adjust(left=-0.2, bottom=-0.2)
 
     ax.legend()
     ax2.legend()
+    ax3.legend()
     ax.set_title(titles[0])
     ax2.set_title(titles[1])
+    ax3.set_title(f'ratio {titles[0]}')
     fig.savefig(f'plots/{plotnames[0]}.png',bbox_inches='tight')
     fig2.savefig(f'plots/{plotnames[1]}.png', bbox_inches='tight')
+    fig3.savefig(f'plots/ratio_{plotnames[0]}.png', bbox_inches='tight')
     plt.close('all')
+
+def returnToMass(output, target, pt, fn):
+
+    if 'logMass' in fn:
+        output = np.exp(output)
+        target = np.exp(target)
+    if '1OverMass' in fn:
+        output = 1/output
+        target = 1/target 
+    if 'massOverPT' in fn:
+        output = output*pt
+        target = output*pt
+        #binrange = (-2,2)
+    if 'LogMassOverPT' in fn:
+        output = np.exp(output*pt)
+        target = np.exp(target*pt)
+    if 'ptOverMass' in fn:
+        output = output/pt
+        target = target/pt
+
+
+    return output, target
+
+
+## function that calculates rms and mms for each file and returns the value for plotting 
+## i think it's better to receive the gen mass for each mod type and return a array of rms, mms, and mass point to use for plotting 
+def calc_RMS_MMS(masspoints, filenames):
+    #print('masspoints: ', masspoints)
+    #print('filenames: ', filenames)
+    df = pd.DataFrame(masspoints, columns=['masspoints'])
+    df['filenames'] = filenames
+    df.sort_values(by='masspoints', ignore_index=True, inplace=True)
+    mmsList = []
+    rmsList = []
+
+    for fn in df['filenames']: 
+        f = uproot.open(fn)
+        g = f['Events']
+        output = g['output'].array()[1::2]
+        target = g['target_mass'].array()[1::2]
+        pt = g['fj_pt'].array()[1::2]
+        output, target = returnToMass(output, target, pt, fn)
+        mms = np.mean(np.log2(output/target))
+        mmsList.append(f'{mms:.4f}')
+        rmsList.append(f'{np.std(np.log2(output/target)):4f}') 
+
+    return rmsList, mmsList, masspoints
+
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-    
-#print(g['label_H_aa_other'].values())
-#print(g['score_label_H_aa_other'].values())
-
-
-#[b'label_H_aa_bbbb', b'score_label_H_aa_bbbb', b'label_H_aa_other', b'score_label_H_aa_other', b'sample_isQCD', b'score_sample_isQCD', b'event_no', b'label_QCD_BGen', b'label_QCD_bEnr', b'sample_min_LHE_HT', b'fj_pt', b'fj_eta', b'fj_mass', b'fj_sdmass', b'fj_corrsdmass', b'fj_sdmass_fromsubjets', b'fj_gen_pt', b'fj_genjet_pt', b'fj_genjet_mass', b'fj_genjet_sdmass', b'fj_gen_H_aa_bbbb_mass_a', b'fj_gen_H_aa_bbbb_dR_max_b', b'fj_gen_H_aa_bbbb_pt_min_b', b'pfParticleNetMassRegressionJetTags_mass', b'pfParticleNetDiscriminatorsJetTags_HbbvsQCD', b'pfParticleNetDiscriminatorsJetTags_H4qvsQCD', b'pfMassDecorrelatedParticleNetDiscriminatorsJetTags_XbbvsQCD'] 
