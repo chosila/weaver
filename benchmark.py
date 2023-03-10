@@ -65,17 +65,19 @@ def main():
 
     
     mods = ['logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
-    #mods = ['logMass', '1OverMass', 'logMassOverPT', 'ptOverMass']
+    #mods.remove('logMassOverPT')
     ## rms and mms vs masspoint figs 
-    fig1, ax1 = plt.subplots()
-    fig2, ax2 = plt.subplots()
+    fig4, ax4 = plt.subplots()
+    fig5, ax5 = plt.subplots()
 
+
+    df = pd.DataFrame()
     ## log2(ratio) and rms vs masspoint
     for mod in mods:
         mp1 = [12,20,30,40,50,60]
         mp2 = [15,25,35,45,55]
-        fn1 = [f'predict/20000/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
-        fn2 = [f'predict/20000/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
+        fn1 = [f'predict/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
+        fn2 = [f'predict/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
         ## make 1d hist for the first half of the set 
         titles = (f'predict {mod} M12,20,30,40,50,60', f'predict {mod} M12,20,30,40,50,60')
         plotnames = (f'predict_a1_M12_{mod}.png', f'target_a1_M12_{mod}.png')
@@ -87,32 +89,37 @@ def main():
 
         ## rms and mms vs masspoint for various mods
         rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2) 
-        ax1.plot(masspoints, rms, label=mod)
-        ax2.plot(masspoints, mms, label=mod) 
-    
+        ax4.plot(masspoints, rms, label=mod)
+        ax5.plot(masspoints, mms, label=mod) 
+        df['masspoints'] = masspoints
+        df[f'rms_{mod}'] = rms
+        df[f'mms_{mod}'] = mms
 
     
         
     ## adding the only mass training to the rms plots 
     fns = [f'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-{x}_numEvent20000.root' for x in mp1+mp2]
     rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fns)
-    ax1.plot(masspoints, rms, label='mass')
-    ax2.plot(masspoints, rms, label='mass')
+    ax4.plot(masspoints, rms, label='mass')
+    ax5.plot(masspoints, rms, label='mass')
+    df[f'rms_mass'] = rms
+    df[f'mms_mass'] = mms
 
+    df.to_csv('RMS_MMS_MsPnt.csv')
     #ax1.set_yticks(ax1.get_yticks()[::4])
     #ax2.set_yticks(ax2.get_yticks()[::4])
     
-    ax1.legend()
-    ax2.legend()
-    ax1.set_title(f'RMS vs mass')
-    ax1.set_xlabel('mass (GeV)')
-    ax1.set_ylabel('RMS')
-    ax2.set_title(f'MMS vs mass')
-    ax2.set_ylabel('MMS')
-    ax2.set_xlabel('mass (Gev)')
+    ax4.legend()
+    ax5.legend()
+    ax4.set_title(f'RMS vs mass')
+    ax4.set_xlabel('mass (GeV)')
+    ax4.set_ylabel('RMS')
+    ax5.set_title(f'MMS vs mass')
+    ax5.set_ylabel('MMS')
+    ax5.set_xlabel('mass (Gev)')
 
-    fig1.savefig(f'plots/RMS_masspoints_.png', bbox_inches='tight')
-    fig2.savefig(f'plots/MMS_masspoints.png', bbox_inches='tight')
+    fig4.savefig(f'plots/RMS_masspoints_.png', bbox_inches='tight')
+    fig5.savefig(f'plots/MMS_masspoints.png', bbox_inches='tight')
  
     import sys
     sys.exit()
@@ -247,7 +254,7 @@ def make1DDist(fl, titles, plotnames, labels):
         pt = g['fj_pt'].array()[1::2]
         
         ## modify output and target back to mass if needed 
-        output, target = returnToMass(output, target, pt, fn)
+        output, target, binrange = returnToMass(output, target, pt, fn)
         
         histdict = {'bins':nbins, 'range':binrange, 'histtype':'step', 'label':label}
         ax.hist(output, **histdict)
@@ -280,27 +287,32 @@ def make1DDist(fl, titles, plotnames, labels):
     fig3.savefig(f'plots/ratio_{plotnames[0]}.png', bbox_inches='tight')
     plt.close('all')
 
-def returnToMass(output, target, pt, fn):
+def returnToMass(output, target, pt, fn, binrange=None):
+    test = 0
     if 'logMass' in fn:
         output = np.exp(output)
         target = np.exp(target)
     if '1OverMass' in fn:
         output = 1/output
-        target = 1/target 
+        target = 1/target
+        binrange= [0,70]
     if 'massOverPT' in fn:
         output = output*pt
         target = target*pt
         output[output < 0] = 0
         #binrange = (-2,2)
-    if 'LogMassOverPT' in fn:
-        output = np.exp(output*pt)
-        target = np.exp(target*pt)
+    if 'logMassOverPT' in fn:
+        print(fn)
+        print(output)
+        output = pt*output
+        target = pt*target
+        print('------------------------------')
+        ##binrange = [10,250]
     if 'ptOverMass' in fn:
-        output = output/pt
-        target = target/pt
+        output = pt/output
+        target = pt/target
 
-
-    return output, target
+    return output, target, binrange
 
 
 ## function that calculates rms and mms for each file and returns the value for plotting 
@@ -318,7 +330,7 @@ def calc_RMS_MMS(masspoints, filenames):
         output = g['output'].array()[1::2]
         target = g['target_mass'].array()[1::2]
         pt = g['fj_pt'].array()[1::2]
-        output, target = returnToMass(output, target, pt, fn)
+        output, target, binrange = returnToMass(output, target, pt, fn)
         where = {'where':output>0, 'out':np.zeros_like(output)}
         mms = np.mean(np.log2(output/target, **where))
         mmsList.append(f'{mms:.4f}')
