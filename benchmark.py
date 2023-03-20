@@ -65,6 +65,7 @@ def main():
 
     
     mods = ['logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
+    parts = ['H_calc', 'a1', 'a2']
     #mods.remove('logMassOverPT')
     ## rms and mms vs masspoint figs 
     fig4, ax4 = plt.subplots()
@@ -72,28 +73,30 @@ def main():
 
 
     df = pd.DataFrame()
-    ## log2(ratio) and rms vs masspoint
-    for mod in mods:
-        mp1 = [12,20,30,40,50,60]
-        mp2 = [15,25,35,45,55]
-        fn1 = [f'predict/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
-        fn2 = [f'predict/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
-        ## make 1d hist for the first half of the set 
-        titles = (f'predict {mod} M12,20,30,40,50,60', f'predict {mod} M12,20,30,40,50,60')
-        plotnames = (f'predict_a1_M12_{mod}.png', f'target_a1_M12_{mod}.png')
-        make1DDist(fn1, titles, plotnames, labels[0])
-        ## make 1d hist for the second half of set 
-        titles =  (f'predict {mod} M15,25,35,45,55', f'predict {mod} M15,25,35,45,55')
-        plotnames = (f'predict_a1_M15_{mod}.png', f'target_a1_M15_{mod}.png')
-        make1DDist(fn2, titles, plotnames, labels[1])
-
-        ## rms and mms vs masspoint for various mods
-        rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2) 
-        ax4.plot(masspoints, rms, label=mod)
-        ax5.plot(masspoints, mms, label=mod) 
-        df['masspoints'] = masspoints
-        df[f'rms_{mod}'] = rms
-        df[f'mms_{mod}'] = mms
+    ## centrally produced miniaod
+    for part in [0]:#parts:
+        for mod in mods:
+            mp1 = [12,20,30,40,50,60]
+            mp2 = [15,25,35,45,55]
+            fn1 = [f'predict/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
+            fn2 = [f'predict/predict_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
+            ## make 1d hist for the first half of the set 
+            titles = (f'predict {mod} M12,20,30,40,50,60', f'predict {mod} M12,20,30,40,50,60')
+            plotnames = (f'predict_a1_M12_{mod}.png', f'target_a1_M12_{mod}.png')
+            make1DDist(fn1, titles, plotnames, labels[0])
+            ## make 1d hist for the second half of set 
+            titles =  (f'predict {mod} M15,25,35,45,55', f'predict {mod} M15,25,35,45,55')
+            plotnames = (f'predict_a1_M15_{mod}.png', f'target_a1_M15_{mod}.png')
+            make1DDist(fn2, titles, plotnames, labels[1])
+        
+            ## rms and mms vs masspoint for various mods
+            rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2) 
+            
+            ax4.plot(masspoints, rms, label=mod)
+            ax5.plot(masspoints, mms, label=mod) 
+            df['masspoints'] = masspoints
+            df[f'rms_{mod}'] = rms
+            df[f'mms_{mod}'] = mms
 
     
         
@@ -121,6 +124,67 @@ def main():
     fig4.savefig(f'plots/RMS_masspoints_.png', bbox_inches='tight')
     fig5.savefig(f'plots/MMS_masspoints.png', bbox_inches='tight')
  
+
+
+    ## wide H miniaod
+    ## predict_H_calc_pt150_logMass_regr.root
+    ## predict/predict_a2_pt350_mass_regr.root
+    fig1, ax1 = plt.subplots()
+    fig2, ax2 = plt.subplots()
+    fig3, ax3 = plt.subplots()
+    fig4, ax4 = plt.subplots() 
+    fig5, ax5 = plt.subplots()
+    labels = [150, 250, 350]
+    mmsList = []
+    rmsList = []
+    histranges = [(0,600), (0,300), (0,125)]
+    for part, histrange in zip(parts, histranges):
+        for mod in ['mass']: #mods: 
+            #for mp in [150, 250, 350]:
+            fns = [f'predict/predict_{part}_pt{mp}_{mod}_regr.root' for mp in labels]
+            for fn, label in zip(fns, labels): 
+                f = uproot.open(fn)
+                g = f['Events']
+                output = np.clip(g['output'].array(), a_min = histrange[0], a_max=histrange[1])
+                target = np.clip(g['target_mass'].array(), a_min = histrange[0], a_max=histrange[1])
+                pt = g['fj_pt'].array()
+
+                histdict = {'bins':50, 'range':histrange, 'histtype':'step', 'label':f'pt{label}'}
+                ax1.hist(output, **histdict)
+                ax2.hist(target, **histdict)
+                ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
+
+                mms = np.mean(np.log2(output/target))
+                mmsList.append(f'{mms:.4f}')
+                rmsList.append(np.std(np.log2(output/target)))
+
+            # ax3.table(
+            #     colLabels=labels,
+            #     rowLabels=['MMS', 'RMS'],
+            #     cellText = [mmsList, rmsList],
+            #     #bbox=[0.1, -0.3, 0.9, 0.2]
+            # )
+         
+            ax1.legend()
+            ax2.legend()
+            ax3.legend()
+            ax1.set_title(f'predict {part}')
+            ax2.set_title(f'target {part}')
+            #ax3.set_title('ratio')
+            # predict_a1_M12_1OverMass.png
+            fig1.savefig(f'plots/predict_{part}_mass.png', bbox_inches='tight')
+            fig2.savefig(f'plots/target_{part}_mass.png', bbox_inches='tight')
+            #fig3.savefig(f'plots/ratio_{part}_mass.png', bbox_inches='tight')
+            ax1.cla()
+            ax2.cla()
+            #ax2.cla()
+
+        #ax4.plot(label, rms)
+        #ax5.plot(label, mms)
+        
+            
+
+
     import sys
     sys.exit()
 
@@ -241,17 +305,17 @@ def make1DDist(fl, titles, plotnames, labels):
     binrange = None#(2,6)
     rmsList = []
     mmsList = []
-    if '12' in fl[0]:
-        masspoints = [12,20,30,40,50,60]
-    elif '15' in fl[0]:
-        masspoints = [15,25,35,45,55]
+    # if '12' in fl[0]:
+    #     masspoints = [12,20,30,40,50,60]
+    # elif '15' in fl[0]:
+    #     masspoints = [15,25,35,45,55]
 
     for fn, label in zip(fl, labels):
         f = uproot.open(fn)
         g = f['Events']
-        output = g['output'].array()[1::2]
-        target = g['target_mass'].array()[1::2]
-        pt = g['fj_pt'].array()[1::2]
+        output = g['output'].array()
+        target = g['target_mass'].array()
+        pt = g['fj_pt'].array()
         
         ## modify output and target back to mass if needed 
         output, target, binrange = returnToMass(output, target, pt, fn)
@@ -288,30 +352,31 @@ def make1DDist(fl, titles, plotnames, labels):
     plt.close('all')
 
 def returnToMass(output, target, pt, fn, binrange=None):
-    test = 0
-    if 'logMass' in fn:
+
+    if 'logMassOverPT' in fn:
+        print('outpout: ', output)
+        print('target: ', target)
+        output = np.exp(output)*pt
+        target = np.exp(target)*pt
+
+        print(output)
+    elif ('logMass' in fn) and ('OverPT' not in fn):
         output = np.exp(output)
         target = np.exp(target)
-    if '1OverMass' in fn:
+    elif '1OverMass' in fn:
         output = 1/output
         target = 1/target
         binrange= [0,70]
-    if 'massOverPT' in fn:
+    elif 'massOverPT' in fn:
         output = output*pt
         target = target*pt
         output[output < 0] = 0
         #binrange = (-2,2)
-    if 'logMassOverPT' in fn:
-        print(fn)
-        print(output)
-        output = pt*output
-        target = pt*target
-        print('------------------------------')
-        ##binrange = [10,250]
-    if 'ptOverMass' in fn:
+    elif 'ptOverMass' in fn:
         output = pt/output
         target = pt/target
 
+    # output[~np.isfinite(output)] = 0
     return output, target, binrange
 
 
