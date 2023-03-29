@@ -245,7 +245,6 @@ def train_load(args):
     data_config = train_data.config
     train_input_names = train_data.config.input_names
     train_label_names = train_data.config.label_names
-     
     return train_loader, val_loader, data_config, train_input_names, train_label_names
 
 
@@ -295,9 +294,20 @@ def test_load(args):
                                  pin_memory=True)
 
         return test_loader
-
     test_loaders = {name: functools.partial(get_test_loader, name) for name in file_dict}
     data_config = SimpleIterDataset({}, args.data_config, for_training=False).config
+
+
+
+    print('-------------------------------------------')
+
+    for i in test_loaders:
+        print(i)
+
+    print('-------------------------------------------')
+
+
+
     return test_loaders, data_config
 
 
