@@ -97,9 +97,6 @@ def main():
                     cellText = [mmsList, rmsList],
                     bbox=[0.1, -0.3, 0.9, 0.2]
                 )
-                
-            
-
                     
                 ax3.legend()
                 ax3.set_title(f'{mod} ratio of predict to target a1 {tag}')
@@ -107,9 +104,24 @@ def main():
                 ax3.cla()
 
 
-            df2['masspoints'] = masspoints
-            df2[f'rms_{mod}'] = rmsList
-            df2[f'mms_{mod}'] = mmsList
+
+    ##saveing the rms list in its own loop
+    for mod in mods:
+        rmsList = []
+        mmsList =[]
+        fns = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in [mp1+mp2]]
+        for mp,fn in zip([mp1+mp2], fns):
+            f = uproot.open(fn)
+            g = f['Events']
+            output = g['output'].array()
+            target = g['target_mass'].array()
+            pt = g['fj_pt']
+             
+
+
+        df2['masspoints'] = masspoints
+        df2[f'rms_{mod}'] = rmsList
+        df2[f'mms_{mod}'] = mmsList
 
     df2.to_csv('RMS_MMS_MsPnt_log2.csv')
 
@@ -325,18 +337,20 @@ def getBinCenter(edges):
     return (left + right)/2
         
 
-def make1DDist(fl, titles, plotnames, labels):
+def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
+    ## usage
+    ## fl : list of files to stack on the same plot
+    ## titles : [title of predict 1d, title of target 1d, title of ratio]
+    ## plotnames : [plotname of predict 1d, plotname of target 1d, plotname of ratio] (without file extension. This assumes the plots will go into the /plots/ directory
+    ## labels : list of what goes into the legend for each filename
+    ## nbins : [nbins for predict and target 1d, nbins for ratio 1d]
+    ## binrange : [binrange for predict and target 1d, binrange for ratio]
+    ## for furure si who is confused and dumb:: The files (and other stff) that go in here are same mod different masspoints
+
+    
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
-    fig3, ax3 = plt.subplots( )#height_ratios=[2,1])
-    nbins = 50
-    binrange = None#(2,6)
-    rmsList = []
-    mmsList = []
-    # if '12' in fl[0]:
-    #     masspoints = [12,20,30,40,50,60]
-    # elif '15' in fl[0]:
-    #     masspoints = [15,25,35,45,55]
+    fig3, ax3 = plt.subplots( )
 
     for fn, label in zip(fl, labels):
         f = uproot.open(fn)
@@ -348,15 +362,18 @@ def make1DDist(fl, titles, plotnames, labels):
         ## modify output and target back to mass if needed 
         output, target, binrange = returnToMass(output, target, pt, fn)
         
-        histdict = {'bins':nbins, 'range':binrange, 'histtype':'step', 'label':label}
+        histdict = {'bins':nbins[0], 'range':binrange[0], 'histtype':'step', 'label':label}
         ax.hist(output, **histdict)
         ax2.hist(target,**histdict)
+        histdict['bins'] = nbins[1]
+        histdict['range'] = binrange[1]
         ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
         
         ## fill table for the mms and rms
         mms = np.mean(np.log2(output/target))
+        rms = np.std(np.log2(output/target))
         mmsList.append(f'{mms:.4f}')
-        rmsList.append(np.std(np.log2(output/target)))
+        rmsList.append(f'{rms:.4f}')
         
     ax3.table(
         colLabels=labels,
@@ -364,18 +381,16 @@ def make1DDist(fl, titles, plotnames, labels):
         cellText = [mmsList, rmsList],
         bbox=[0.1, -0.3, 0.9, 0.2]
     )
-    
-    #plt.subplots_adjust(left=-0.2, bottom=-0.2)
 
     ax.legend()
     ax2.legend()
     ax3.legend()
     ax.set_title(titles[0])
     ax2.set_title(titles[1])
-    ax3.set_title(f'ratio {titles[0]}')
+    ax3.set_title(titles[2])
     fig.savefig(f'plots/{plotnames[0]}.png',bbox_inches='tight')
     fig2.savefig(f'plots/{plotnames[1]}.png', bbox_inches='tight')
-    fig3.savefig(f'plots/ratio_{plotnames[0]}.png', bbox_inches='tight')
+    fig3.savefig(f'plots/{plotnames[2]}.png', bbox_inches='tight')
     plt.close('all')
 
 def returnToMass(output, target, pt, fn, binrange=None):
@@ -405,13 +420,14 @@ def returnToMass(output, target, pt, fn, binrange=None):
 
 ## function that calculates rms and mms for each file and returns the value for plotting 
 ## i think it's better to receive the gen mass for each mod type and return a array of rms, mms, and mass point to use for plotting 
-def calc_RMS_MMS(masspoints, filenames):
+def calc_RMS_MMS(masspoints, filenames, log2=False):
     df = pd.DataFrame(masspoints, columns=['masspoints'])
     df['filenames'] = filenames
     df.sort_values(by='masspoints', ignore_index=True, inplace=True)
     mmsList = []
     rmsList = []
 
+    
     for fn in df['filenames']: 
         f = uproot.open(fn)
         g = f['Events']
@@ -423,8 +439,9 @@ def calc_RMS_MMS(masspoints, filenames):
         where = {'where':output>0, 'out':np.zeros_like(output)}
 
         mms = np.mean(np.log2(output/target, **where))
+        rms = np.std(np.log2(output/target, **where))
         mmsList.append(f'{mms:.4f}')
-        rmsList.append(f'{np.std(np.log2(output/target, **where)):4f}')
+        rmsList.append(f'{:4f}')
         
     
     return rmsList, mmsList, df['masspoints'].values.tolist()
