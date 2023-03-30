@@ -65,15 +65,12 @@ def main():
 
     mps = mp1+mp2
     mps.sort()
+    df2 = pd.DataFrame()
     ## mass resolution for centrally produced 
 
-    fig1, ax1 = plt.subplots()
-    fig2, ax2 = plt.subplots()
     fig3, ax3 = plt.subplots()
     for histrange in [(-2,2)]:
         for mod in mods:
-            
-                                   
             for mps, tag in zip([mp1, mp2], ['M-12','M-15']):
                 fns = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mps]
                 mmsList = []
@@ -86,9 +83,8 @@ def main():
                     target = g['target_mass'].array()
                     pt = g['fj_pt'].array()
                     
+                    output, target, binrange = returnToMass(output, target, pt, fn)
                     histdict = {'bins':50, 'range':histrange, 'histtype':'step', 'label':f'M-{masspoint}'}
-                    #ax1.hist(np.clip(output, a_min=histrange[0], a_max=histrange[1]), **histdict)                
-                    #ax2.hist(np.clip(target, a_min=histrange[0], a_max=histrange[1]), **histdict)
                     ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
                     
                     mms = np.mean(np.log2(output/target, where=output/target>0))
@@ -101,24 +97,21 @@ def main():
                     cellText = [mmsList, rmsList],
                     bbox=[0.1, -0.3, 0.9, 0.2]
                 )
+                
+            
+
                     
-    
-                #ax1.legend()
-                #ax2.legend()
                 ax3.legend()
-                #ax1.set_title(f'{mod} resolution predict a1')
-                #ax2.set_title(f'{mod} resolution target a1')
                 ax3.set_title(f'{mod} ratio of predict to target a1 {tag}')
-                # predict_a1_M12_1OverMass.png
-                #fig1.savefig(f'plots/predict_a1_{mod}.png', bbox_inches='tight')
-                #fig2.savefig(f'plots/target_a1_{mod}.png', bbox_inches='tight')
                 fig3.savefig(f'plots/ratio_a1_{tag}_{mod}.png', bbox_inches='tight')
-                #ax1.cla()
-                #ax2.cla()
                 ax3.cla()
 
 
+            df2['masspoints'] = masspoints
+            df2[f'rms_{mod}'] = rmsList
+            df2[f'mms_{mod}'] = mmsList
 
+    df2.to_csv('RMS_MMS_MsPnt_log2.csv')
 
 
 
