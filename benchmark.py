@@ -11,78 +11,36 @@ from matplotlib.colors import LogNorm
 
 def main():
     predType = 'regr'
-
-    ## create 1D predict and target plots for each mass point of centrally produced Ntuples
-    fl2 = ['predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-15_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-25_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-35_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-45_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-55_numEvent20000.root',]
-            
-    fl1 = ['predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-12_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-20_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-30_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-40_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-50_numEvent20000.root',
-           'predict/predict_a1_AK8_HToAATo4B_GluGluH_01J_Pt150_M-60_numEvent20000.root',]
-            
-            
-    fl3 = ['predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-12_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-20_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-30_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-40_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-60_numEvent20000.root',]
-            
-    fl4 = ['predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-15_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-25_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-35_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-45_numEvent20000.root',
-           'predict/predict_a2_AK8_HToAATo4B_GluGluH_01J_Pt150_M-55_numEvent20000.root'] 
-
-    titlepairs = [('a1 prediction with masses: 12, 20, 30, 40, 50, 60', 'a1 target with massses: 12, 20, 30, 40, 50, 60'), 
-                  ('a1 prediction with masses: 15, 25, 35, 45, 55',     'a1 target with masses: 15, 25, 35, 45, 55 '),
-                  ('a2 prediction with masses: 12, 20, 30, 40, 50, 60', 'a2 target with masses: 12, 20, 30, 40, 50, 60'),
-                  ('a2 predection with masses: 15, 25, 35, 45, 55',     'a2 target with masses: 15, 25, 35, 45, 55')]
-    plotnamepairs = [('prediction_a1_12.png', 'target_a1_12.png'),
-                     ('prediction_a1_15.png', 'target_a1_15.png'),
-                     ('prediction_a2_12.png', 'target_a2_12.png'),
-                     ('prediction_a2_15.png', 'target_a2.15.png')]
-
-    labels = [['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
-              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55'],
-              ['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
-              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55']]
-
-    #for fl, titles, plotnames in zip([fl1,fl2,fl3,fl4], titlepairs, plotnamepairs):
-    #    make1DDist(fl, titles, plotnames, labels)
-    ## -------------------------------- end 1D central Ntuple plots ----------------------------
-
     
-    mods = ['logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
-    mods.remove('ptOverMass')
+    mods = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
+    #mods.remove('ptOverMass')
     parts = ['H_calc', 'a1', 'a2']
     parts = ['a1']
     #mods.remove('logMassOverPT')
     ## rms and mms vs masspoint figs 
     fig4, ax4 = plt.subplots()
     fig5, ax5 = plt.subplots()
+    labels = [['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
+              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55'],
+              ['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
+              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55']]
 
 
     df = pd.DataFrame()
+    mp1 = [12,20,30,40,50,60]
+    mp2 = [15,25,35,45,55]
     ## centrally produced miniaod
     for part in [0]: #parts:
         for mod in mods:
-            mp1 = [12,20,30,40,50,60]
-            mp2 = [15,25,35,45,55]
             fn1 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
             fn2 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
             ## make 1d hist for the first half of the set 
             titles = (f'predict {mod} M12,20,30,40,50,60', f'predict {mod} M12,20,30,40,50,60')
-            plotnames = (f'predict_a1_M12_{mod}.png', f'target_a1_M12_{mod}.png')
+            plotnames = (f'predict_a1_M12_{mod}', f'target_a1_M12_{mod}')
             make1DDist(fn1, titles, plotnames, labels[0])
             ## make 1d hist for the second half of set 
             titles =  (f'predict {mod} M15,25,35,45,55', f'predict {mod} M15,25,35,45,55')
-            plotnames = (f'predict_a1_M15_{mod}.png', f'target_a1_M15_{mod}.png')
+            plotnames = (f'predict_a1_M15_{mod}', f'target_a1_M15_{mod}')
             make1DDist(fn2, titles, plotnames, labels[1])
         
             ## rms and mms vs masspoint for various mods
@@ -99,30 +57,70 @@ def main():
     ## adding the only mass training to the rms plots 
     fns = [f'predict/predict_central_a1_M{x}_mass_regr.root' for x in mp1+mp2]
     rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fns)
-    ax4.plot(masspoints, rms, label='mass')
-    ax5.plot(masspoints, rms, label='mass')
     df[f'rms_mass'] = rms
     df[f'mms_mass'] = mms
 
     df.to_csv('RMS_MMS_MsPnt.csv')
-    #ax1.set_yticks(ax1.get_yticks()[::4])
-    #ax2.set_yticks(ax2.get_yticks()[::4])
-    
-    ax4.legend()
-    ax5.legend()
-    ax4.set_title(f'RMS vs mass')
-    ax4.set_xlabel('mass (GeV)')
-    ax4.set_ylabel('RMS')
-    ax5.set_title(f'MMS vs mass')
-    ax5.set_ylabel('MMS')
-    ax5.set_xlabel('mass (Gev)')
-
-    fig4.savefig(f'plots/RMS_masspoints_.png', bbox_inches='tight')
-    fig5.savefig(f'plots/MMS_masspoints.png', bbox_inches='tight')
     plt.close('all')
 
+    mps = mp1+mp2
+    mps.sort()
     ## mass resolution for centrally produced 
+
+    fig1, ax1 = plt.subplots()
+    fig2, ax2 = plt.subplots()
+    fig3, ax3 = plt.subplots()
+    for histrange in [(-2,2)]:
+        for mod in mods:
+            
+                                   
+            for mps, tag in zip([mp1, mp2], ['M-12','M-15']):
+                fns = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mps]
+                mmsList = []
+                rmsList = []
+                for fn, masspoint in zip(fns, mps):
+                    print(fn)
+                    f = uproot.open(fn)
+                    g = f['Events'] 
+                    output = g['output'].array()
+                    target = g['target_mass'].array()
+                    pt = g['fj_pt'].array()
+                    
+                    histdict = {'bins':50, 'range':histrange, 'histtype':'step', 'label':f'M-{masspoint}'}
+                    #ax1.hist(np.clip(output, a_min=histrange[0], a_max=histrange[1]), **histdict)                
+                    #ax2.hist(np.clip(target, a_min=histrange[0], a_max=histrange[1]), **histdict)
+                    ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
+                    
+                    mms = np.mean(np.log2(output/target, where=output/target>0))
+                    mmsList.append(f'{mms:.4f}')
+                    rmsList.append(np.std(np.log2(output/target, where=output/target>0)))
+                    
+                ax3.table(
+                    colLabels=[f'M-{mp}' for mp in mps],
+                    rowLabels=['MMS', 'RMS'],
+                    cellText = [mmsList, rmsList],
+                    bbox=[0.1, -0.3, 0.9, 0.2]
+                )
+                    
     
+                #ax1.legend()
+                #ax2.legend()
+                ax3.legend()
+                #ax1.set_title(f'{mod} resolution predict a1')
+                #ax2.set_title(f'{mod} resolution target a1')
+                ax3.set_title(f'{mod} ratio of predict to target a1 {tag}')
+                # predict_a1_M12_1OverMass.png
+                #fig1.savefig(f'plots/predict_a1_{mod}.png', bbox_inches='tight')
+                #fig2.savefig(f'plots/target_a1_{mod}.png', bbox_inches='tight')
+                fig3.savefig(f'plots/ratio_a1_{tag}_{mod}.png', bbox_inches='tight')
+                #ax1.cla()
+                #ax2.cla()
+                ax3.cla()
+
+
+
+
+
 
 
     import sys
@@ -146,7 +144,7 @@ def main():
             hist_tmp, xedge, yedge = np.histogram2d(output, target, range=[histrange, histrange], bins=50)
             hist+=hist_tmp
 
-        print(hist)
+
         c = ax1.pcolor(xedge, yedge, hist)#hist, X=xedge, Y=yedge)
         #fig1.colorbar(c, ax=ax1)
         ax1.set_title(f'{part} mass regression')
@@ -192,10 +190,6 @@ def main():
                 mmsList.append(f'{mms:.4f}')
                 rmsList.append(np.std(np.log2(output/target)))
 
-
-            print(label)
-            print(rmsList)
-            print(mmsList)
 
             ax3.table(
                 colLabels=labels,
@@ -426,22 +420,14 @@ def calc_RMS_MMS(masspoints, filenames):
     rmsList = []
 
     for fn in df['filenames']: 
-        print(fn)
         f = uproot.open(fn)
         g = f['Events']
         output = g['output'].array()
         target = g['target_mass'].array()
         pt = g['fj_pt'].array()
 
-        print(output[:10])
-        print(target[:10])
-        print(pt[:10])
         output, target, binrange = returnToMass(output, target, pt, fn)
         where = {'where':output>0, 'out':np.zeros_like(output)}
-        print(output[:10])
-        print(target[:10])
-        print(pt[:10])
-
 
         mms = np.mean(np.log2(output/target, **where))
         mmsList.append(f'{mms:.4f}')
