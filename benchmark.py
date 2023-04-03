@@ -24,7 +24,7 @@ def main():
             titles = [f'predict {part} {mod} (even)', f'target {part} {mod} (even)', 
                       f'resolution {part} {mod} (even)', f'sig/sqrt(bg) {part} {mod} (even)']
             plotnames = (f'predict_{part}_{mod}_even', f'target_{part}_{mod}_even', 
-                         f'resolution_{part}_{mod}_even', f'sOverSqrtB_{part}_{mod}_even')
+                         f'resolution_{part}_{mod}_even', f'sensitivity_{part}_{mod}_even')
             labels = [f'M-{mp}' for mp in mp1]
             nbins = [70, 70]
             binranges = [(0, 70), (-2, 2)]
@@ -32,10 +32,23 @@ def main():
             titles = [f'predict {part} {mod} (odd)', f'target {part} {mod} (odd)', 
                       f'resolution {part} {mod} (odd)', f'sig/sqrt(bg) {part} {mod} (odd)']
             plotnames = (f'predict_{part}_{mod}_odd', f'target_{part}_{mod}_odd', 
-                         f'resolution_{part}_{mod}_odd', f'sOverSqrtB_{part}_{mod}_odd')
+                         f'resolution_{part}_{mod}_odd', f'sensitivity_{part}_{mod}_odd')
             labels = [f'M-{mp}' for mp in mp2]
             make1DDist(fn2, titles, plotnames, labels, nbins, binranges)
 
+
+    ## calculate the RMS values again to be saved to a csv 
+    df = pd.DataFrame()
+    for part in [0]:#parts:
+        for mod in mods:
+            fn1 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
+            fn2 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
+            rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2)
+            df['masspoints'] = masspoints 
+            df[f'rms_{mod}'] = rms
+            df[f'mms_{mod}'] = mms
+
+    df.to_csv('RMS_MMS_masspoints.csv')
 
     ## wide H 
     ptpoints = [150, 250, 350]
@@ -45,6 +58,8 @@ def main():
     for ptpnt, binrange in zip(ptpoints, binranges):
         fns = [f'predict/predict_{part}_pt{ptpnt}_mass_regr.root']
         #make1DDist(fn2, titles, plotnames, labels, nbins, binranges)
+
+
 
     import sys
     sys.exit()
@@ -213,6 +228,9 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     mmsList = []
     rmsList = []
 
+    sensitivityList = []
+    rmsList2 = []
+
     for fn, label in zip(fl, labels):
         f = uproot.open(fn)
         g = f['Events']
@@ -234,16 +252,20 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         ## resolution plot
         ax3.hist(np.log2(ratio), **histdict)
         
-        ## s/sqrt(B)
+        ## s/sqrt(B)    (sensitivity)
         ## Plot with 101 bins from 0 to 2.02, using the last bin as “overflow” for all events with [pred / targ] > 2.0
         ## Sum the squares of the bin values for the first 100 bins (excluding the overflow bin), multiply by 100 (the number of bins 
         ## summed), and divide by the square of the total integral (including the overflow bin).
         s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
         binwidth = s_edge[1]-s_edge[0]
-        sumsqr = np.sum(s_hist[:99])*100/np.square(np.sum(s_hist)*binwidth)
-        ax4.step( s_edge[:-1] , s_hist, label=f'{label} :{sumsqr:.4f}')
+        sensitivity = np.sum(s_hist[:99])*100/np.square(np.sum(s_hist)*binwidth)
+        ax4.step( s_edge[:-1] , s_hist, label=f'{label}')
+        
+        ## for filling the sumsqr table
+        sensitivityList.append(f'{sensitivity:.4f}')
+        rm2 = np.std(output/target, where=output/target<=2)
+        rmsList2.append(f'{rm2:.4f}')
 
-        print(np.sum(np.ones(100)*100/np.square(np.sum(np.ones(100))*binwidth)))
 
         ## fill table for the mms and rms
         mms = np.mean(np.log2(output/target))
@@ -255,6 +277,13 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         colLabels=labels,
         rowLabels=['MMS', 'RMS'],
         cellText = [mmsList, rmsList],
+        bbox=[0.1, -0.3, 0.9, 0.2]
+    )
+
+    ax4.table(
+        colLabels=labels,
+        rowLabels=['sensitivity^2', 'RMS'],
+        cellText = [sensitivityList, rmsList2],
         bbox=[0.1, -0.3, 0.9, 0.2]
     )
 
@@ -299,6 +328,7 @@ def returnToMass(output, target, pt, fn, binrange=None):
 
 ## function that calculates rms and mms for each file and returns the value for plotting 
 ## i think it's better to receive the gen mass for each mod type and return a array of rms, mms, and mass point to use for plotting 
+## it will also calculate s/sqrt(b) too because i suck
 def calc_RMS_MMS(masspoints, filenames, log2=False):
     df = pd.DataFrame(masspoints, columns=['masspoints'])
     df['filenames'] = filenames
