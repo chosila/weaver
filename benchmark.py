@@ -10,123 +10,41 @@ from matplotlib.colors import LogNorm
 
 
 def main():
-    predType = 'regr'
-    
-    mods = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
-    #mods.remove('ptOverMass')
+
     parts = ['H_calc', 'a1', 'a2']
-    parts = ['a1']
-    #mods.remove('logMassOverPT')
-    ## rms and mms vs masspoint figs 
-    fig4, ax4 = plt.subplots()
-    fig5, ax5 = plt.subplots()
-    labels = [['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
-              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55'],
-              ['M-12', 'M-20', 'M-30', 'M-40', 'M-50', 'M-60'],
-              ['M-15', 'M-25', 'M-35', 'M-45', 'M-55']]
-
-
-    df = pd.DataFrame()
+    mods = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
+    
+    ## centrally produced 
     mp1 = [12,20,30,40,50,60]
     mp2 = [15,25,35,45,55]
-    ## centrally produced miniaod
-    for part in [0]: #parts:
+    for part in parts:
         for mod in mods:
             fn1 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
             fn2 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
-            ## make 1d hist for the first half of the set 
-            titles = (f'predict {mod} M12,20,30,40,50,60', f'predict {mod} M12,20,30,40,50,60')
-            plotnames = (f'predict_a1_M12_{mod}', f'target_a1_M12_{mod}')
-            make1DDist(fn1, titles, plotnames, labels[0])
-            ## make 1d hist for the second half of set 
-            titles =  (f'predict {mod} M15,25,35,45,55', f'predict {mod} M15,25,35,45,55')
-            plotnames = (f'predict_a1_M15_{mod}', f'target_a1_M15_{mod}')
-            make1DDist(fn2, titles, plotnames, labels[1])
-        
-            ## rms and mms vs masspoint for various mods
-            rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2) 
-            
-            ax4.plot(masspoints, rms, label=mod)
-            ax5.plot(masspoints, mms, label=mod) 
-            df['masspoints'] = masspoints
-            df[f'rms_{mod}'] = rms
-            df[f'mms_{mod}'] = mms
+            titles = [f'predict {part} {mod} (even)', f'target {part} {mod} (even)', 
+                      f'resolution {part} {mod} (even)', f'sig/sqrt(bg) {part} {mod} (even)']
+            plotnames = (f'predict_{part}_{mod}_even', f'target_{part}_{mod}_even', 
+                         f'resolution_{part}_{mod}_even', f'sOverSqrtB_{part}_{mod}_even')
+            labels = [f'M-{mp}' for mp in mp1]
+            nbins = [70, 70]
+            binranges = [(0, 70), (-2, 2)]
+            make1DDist(fn1, titles, plotnames, labels, nbins, binranges)
+            titles = [f'predict {part} {mod} (odd)', f'target {part} {mod} (odd)', 
+                      f'resolution {part} {mod} (odd)', f'sig/sqrt(bg) {part} {mod} (odd)']
+            plotnames = (f'predict_{part}_{mod}_odd', f'target_{part}_{mod}_odd', 
+                         f'resolution_{part}_{mod}_odd', f'sOverSqrtB_{part}_{mod}_odd')
+            labels = [f'M-{mp}' for mp in mp2]
+            make1DDist(fn2, titles, plotnames, labels, nbins, binranges)
 
+
+    ## wide H 
+    ptpoints = [150, 250, 350]
+    binranges = [[x, (-2,2)] for x in [(0,600), (0,300), (0,125)]]
     
-        
-    ## adding the only mass training to the rms plots 
-    fns = [f'predict/predict_central_a1_M{x}_mass_regr.root' for x in mp1+mp2]
-    rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fns)
-    df[f'rms_mass'] = rms
-    df[f'mms_mass'] = mms
-
-    df.to_csv('RMS_MMS_MsPnt.csv')
-    plt.close('all')
-
-    mps = mp1+mp2
-    mps.sort()
-    df2 = pd.DataFrame()
-    ## mass resolution for centrally produced 
-
-    fig3, ax3 = plt.subplots()
-    for histrange in [(-2,2)]:
-        for mod in mods:
-            for mps, tag in zip([mp1, mp2], ['M-12','M-15']):
-                fns = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mps]
-                mmsList = []
-                rmsList = []
-                for fn, masspoint in zip(fns, mps):
-                    print(fn)
-                    f = uproot.open(fn)
-                    g = f['Events'] 
-                    output = g['output'].array()
-                    target = g['target_mass'].array()
-                    pt = g['fj_pt'].array()
-                    
-                    output, target, binrange = returnToMass(output, target, pt, fn)
-                    histdict = {'bins':50, 'range':histrange, 'histtype':'step', 'label':f'M-{masspoint}'}
-                    ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
-                    
-                    mms = np.mean(np.log2(output/target, where=output/target>0))
-                    mmsList.append(f'{mms:.4f}')
-                    rmsList.append(np.std(np.log2(output/target, where=output/target>0)))
-                    
-                ax3.table(
-                    colLabels=[f'M-{mp}' for mp in mps],
-                    rowLabels=['MMS', 'RMS'],
-                    cellText = [mmsList, rmsList],
-                    bbox=[0.1, -0.3, 0.9, 0.2]
-                )
-                    
-                ax3.legend()
-                ax3.set_title(f'{mod} ratio of predict to target a1 {tag}')
-                fig3.savefig(f'plots/ratio_a1_{tag}_{mod}.png', bbox_inches='tight')
-                ax3.cla()
-
-
-
-    ##saveing the rms list in its own loop
-    for mod in mods:
-        rmsList = []
-        mmsList =[]
-        fns = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in [mp1+mp2]]
-        for mp,fn in zip([mp1+mp2], fns):
-            f = uproot.open(fn)
-            g = f['Events']
-            output = g['output'].array()
-            target = g['target_mass'].array()
-            pt = g['fj_pt']
-             
-
-
-        df2['masspoints'] = masspoints
-        df2[f'rms_{mod}'] = rmsList
-        df2[f'mms_{mod}'] = mmsList
-
-    df2.to_csv('RMS_MMS_MsPnt_log2.csv')
-
-
-
+    ## TODO figure this shit out. is it all pt point in 1 plot? maybe 
+    for ptpnt, binrange in zip(ptpoints, binranges):
+        fns = [f'predict/predict_{part}_pt{ptpnt}_mass_regr.root']
+        #make1DDist(fn2, titles, plotnames, labels, nbins, binranges)
 
     import sys
     sys.exit()
@@ -165,70 +83,8 @@ def main():
         
     plt.close('all')
 
-    fig1, ax1 = plt.subplots()
-    fig2, ax2 = plt.subplots()
-    fig3, ax3 = plt.subplots()
-    fig4, ax4 = plt.subplots() 
-    fig5, ax5 = plt.subplots()
-
-    ## mass resolution (log2(predict/target))
-    for part, histrange in zip(parts, histranges):
-        for mod in ['mass']: #mods: 
-            #for mp in [150, 250, 350]:
-            fns = [f'predict/predict_{part}_pt{mp}_{mod}_regr.root' for mp in labels]
-            mmsList = []
-            rmsList = []
-
-            for fn, label in zip(fns, labels): 
-                f = uproot.open(fn)
-                g = f['Events']
-                output = g['output'].array() #np.clip(g['output'].array(), a_min = histrange[0], a_max=histrange[1])
-                target = g['target_mass'].array()#np.clip(g['target_mass'].array(), a_min = histrange[0], a_max=histrange[1])
-                pt = g['fj_pt'].array()
-
-                histdict = {'bins':50, 'range':histrange, 'histtype':'step', 'label':f'pt{label}'}
-                ax1.hist(np.clip(output, a_min=histrange[0], a_max=histrange[1]), **histdict)
-                ax2.hist(np.clip(target, a_min=histrange[0], a_max=histrange[1]), **histdict)
-                ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
-
-                mms = np.mean(np.log2(output/target))
-                mmsList.append(f'{mms:.4f}')
-                rmsList.append(np.std(np.log2(output/target)))
-
-
-            ax3.table(
-                colLabels=labels,
-                rowLabels=['MMS', 'RMS'],
-                cellText = [mmsList, rmsList],
-                bbox=[0.1, -0.3, 0.9, 0.2]
-            )
-            
-
-         
-            ax1.legend()
-            ax2.legend()
-            ax3.legend()
-            ax1.set_title(f'predict {part}')
-            ax2.set_title(f'target {part}')
-            ax3.set_title('ratio of predict to target {part}')
-            # predict_a1_M12_1OverMass.png
-            fig1.savefig(f'plots/predict_{part}_mass.png', bbox_inches='tight')
-            fig2.savefig(f'plots/target_{part}_mass.png', bbox_inches='tight')
-            fig3.savefig(f'plots/ratio_{part}_mass.png', bbox_inches='tight')
-            ax1.cla()
-            ax2.cla()
-            ax3.cla()
-
-        #ax4.plot(label, rms)
-        #ax5.plot(label, mms)
-        
-            
-
-
     import sys
     sys.exit()
-
-
 
     fns = [f'/home/chosila/Projects/weaver/output/predict_VarHMass_20000_{x}_regr.root' for x in ['H', 'a1', 'a2']]
     names = ['H_mass_regr','a1_mass_regr','a2_mass_regr']
@@ -338,19 +194,24 @@ def getBinCenter(edges):
         
 
 def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
+    ## creates the 1d preedict, target and mass resolution plots
+    ## all files in fl will go on one plot 
     ## usage
     ## fl : list of files to stack on the same plot
-    ## titles : [title of predict 1d, title of target 1d, title of ratio]
-    ## plotnames : [plotname of predict 1d, plotname of target 1d, plotname of ratio] (without file extension. This assumes the plots will go into the /plots/ directory
+    ## titles : [title of predict 1d, title of target 1d, title of ratio, title of sig/sqrt(bg)]
+    ## plotnames : [plotname of predict 1d, plotname of target 1d, plotname of ratio, plotname of sig/sqrt(bg)] (without file extension. This assumes the plots will go into the /plots/ directory
     ## labels : list of what goes into the legend for each filename
     ## nbins : [nbins for predict and target 1d, nbins for ratio 1d]
-    ## binrange : [binrange for predict and target 1d, binrange for ratio]
+    ## binranges : [binrange for predict and target 1d, binrange for ratio]
     ## for furure si who is confused and dumb:: The files (and other stff) that go in here are same mod different masspoints
-
     
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
     fig3, ax3 = plt.subplots( )
+    fig4, ax4 = plt.subplots()
+
+    mmsList = []
+    rmsList = []
 
     for fn, label in zip(fl, labels):
         f = uproot.open(fn)
@@ -360,15 +221,30 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         pt = g['fj_pt'].array()
         
         ## modify output and target back to mass if needed 
-        output, target, binrange = returnToMass(output, target, pt, fn)
+        output, target, binrange = returnToMass(output, target, pt, fn, binranges[0])
         
-        histdict = {'bins':nbins[0], 'range':binrange[0], 'histtype':'step', 'label':label}
+        ## 1D dists 
+        histdict = {'bins':nbins[0], 'range':binrange, 'histtype':'step', 'label':label}
         ax.hist(output, **histdict)
         ax2.hist(target,**histdict)
         histdict['bins'] = nbins[1]
-        histdict['range'] = binrange[1]
-        ax3.hist(np.log2(output/target, where=output/target>0), **histdict)
+        histdict['range'] = binranges[1]
+        ratio = np.divide(output, target, where=output/target>0)
         
+        ## resolution plot
+        ax3.hist(np.log2(ratio), **histdict)
+        
+        ## s/sqrt(B)
+        ## Plot with 101 bins from 0 to 2.02, using the last bin as “overflow” for all events with [pred / targ] > 2.0
+        ## Sum the squares of the bin values for the first 100 bins (excluding the overflow bin), multiply by 100 (the number of bins 
+        ## summed), and divide by the square of the total integral (including the overflow bin).
+        s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+        binwidth = s_edge[1]-s_edge[0]
+        sumsqr = np.sum(s_hist[:99])*100/np.square(np.sum(s_hist)*binwidth)
+        ax4.step( s_edge[:-1] , s_hist, label=f'{label} :{sumsqr:.4f}')
+
+        print(np.sum(np.ones(100)*100/np.square(np.sum(np.ones(100))*binwidth)))
+
         ## fill table for the mms and rms
         mms = np.mean(np.log2(output/target))
         rms = np.std(np.log2(output/target))
@@ -385,12 +261,15 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     ax.legend()
     ax2.legend()
     ax3.legend()
+    ax4.legend()
     ax.set_title(titles[0])
     ax2.set_title(titles[1])
     ax3.set_title(titles[2])
+    ax4.set_title(titles[3])
     fig.savefig(f'plots/{plotnames[0]}.png',bbox_inches='tight')
     fig2.savefig(f'plots/{plotnames[1]}.png', bbox_inches='tight')
     fig3.savefig(f'plots/{plotnames[2]}.png', bbox_inches='tight')
+    fig4.savefig(f'plots/{plotnames[3]}.png', bbox_inches='tight')
     plt.close('all')
 
 def returnToMass(output, target, pt, fn, binrange=None):
@@ -441,7 +320,7 @@ def calc_RMS_MMS(masspoints, filenames, log2=False):
         mms = np.mean(np.log2(output/target, **where))
         rms = np.std(np.log2(output/target, **where))
         mmsList.append(f'{mms:.4f}')
-        rmsList.append(f'{:4f}')
+        rmsList.append(f'{rms:4f}')
         
     
     return rmsList, mmsList, df['masspoints'].values.tolist()
