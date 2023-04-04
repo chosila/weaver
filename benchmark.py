@@ -11,16 +11,16 @@ from matplotlib.colors import LogNorm
 
 def main():
 
-    parts = ['H_calc', 'a1', 'a2']
+    parts = ['a1', 'a2']#['H_calc', 'a1', 'a2']
     mods = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
-    
+    parts.remove('a2')
     ## centrally produced 
     mp1 = [12,20,30,40,50,60]
     mp2 = [15,25,35,45,55]
     for part in parts:
         for mod in mods:
-            fn1 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
-            fn2 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
+            fn1 = [f'predict/predict_central_{part}_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
+            fn2 = [f'predict/predict_central_{part}_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
             titles = [f'predict {part} {mod} (even)', f'target {part} {mod} (even)', 
                       f'resolution {part} {mod} (even)', f'sig/sqrt(bg) {part} {mod} (even)']
             plotnames = (f'predict_{part}_{mod}_even', f'target_{part}_{mod}_even', 
@@ -64,42 +64,6 @@ def main():
     import sys
     sys.exit()
 
-    ## wide H miniaod
-    ## predict_H_calc_pt150_logMass_regr.root
-    ## predict/predict_a2_pt350_mass_regr.root
-    labels = [150, 250, 350]
-    histranges = [(0,600), (0,300), (0,125)]
-    ## 2d hist of predict 
-    for part, histrange in zip(parts, histranges):
-        fig1, ax1 = plt.subplots()
-        fns = [f'predict/predict_{part}_pt{mp}_mass_regr.root' for mp in labels]
-        hist = 0
-        for fn in fns:
-            f = uproot.open(fn)
-            g = f['Events']
-            output = g['output'].array()
-            target = g['target_mass'].array()
-            hist_tmp, xedge, yedge = np.histogram2d(output, target, range=[histrange, histrange], bins=50)
-            hist+=hist_tmp
-
-
-        c = ax1.pcolor(xedge, yedge, hist)#hist, X=xedge, Y=yedge)
-        #fig1.colorbar(c, ax=ax1)
-        ax1.set_title(f'{part} mass regression')
-        ax1.set_ylabel('predicted mass')
-        ax1.set_xlabel('target mass')
-        fig1.savefig(f'plots/predict_{part}_mass_2d.png', bbox_inches='tight')
-        
-        c = ax1.pcolor(xedge, yedge, hist, norm=LogNorm())
-        fig1.colorbar(c, ax=ax1)
-        fig1.savefig(f'plots/predict_{part}_mass_2d_log.png', bbox_inches='tight')
-        
-        plt.close(fig1)
-        
-    plt.close('all')
-
-    import sys
-    sys.exit()
 
     fns = [f'/home/chosila/Projects/weaver/output/predict_VarHMass_20000_{x}_regr.root' for x in ['H', 'a1', 'a2']]
     names = ['H_mass_regr','a1_mass_regr','a2_mass_regr']
@@ -258,14 +222,13 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         ## summed), and divide by the square of the total integral (including the overflow bin).
         s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
         binwidth = s_edge[1]-s_edge[0]
-        sensitivity = np.sum(s_hist[:99])*100/np.square(np.sum(s_hist)*binwidth)
+        sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
         ax4.step( s_edge[:-1] , s_hist, label=f'{label}')
         
         ## for filling the sumsqr table
         sensitivityList.append(f'{sensitivity:.4f}')
         rm2 = np.std(output/target, where=output/target<=2)
         rmsList2.append(f'{rm2:.4f}')
-
 
         ## fill table for the mms and rms
         mms = np.mean(np.log2(output/target))
