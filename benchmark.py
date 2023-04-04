@@ -43,10 +43,12 @@ def main():
         for mod in mods:
             fn1 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp1]
             fn2 = [f'predict/predict_central_a1_M{masspoint}_{mod}_regr.root' for masspoint in mp2]
-            rms, mms, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2)
+            rms, mms, rms2, sensitivity, masspoints = calc_RMS_MMS(mp1+mp2, fn1+fn2)
             df['masspoints'] = masspoints 
             df[f'rms_{mod}'] = rms
             df[f'mms_{mod}'] = mms
+            df[f'rms2_{mod}'] = rms2
+            df[f'sensitivity_{mod}'] = sensitivity
 
     df.to_csv('RMS_MMS_masspoints.csv')
 
@@ -299,6 +301,13 @@ def calc_RMS_MMS(masspoints, filenames, log2=False):
     mmsList = []
     rmsList = []
 
+
+    rmsList2 = []
+    sensitivityList = []
+
+    #s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+    #binwidth = s_edge[1]-s_edge[0]
+    #sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
     
     for fn in df['filenames']: 
         f = uproot.open(fn)
@@ -309,14 +318,22 @@ def calc_RMS_MMS(masspoints, filenames, log2=False):
 
         output, target, binrange = returnToMass(output, target, pt, fn)
         where = {'where':output>0, 'out':np.zeros_like(output)}
-
-        mms = np.mean(np.log2(output/target, **where))
-        rms = np.std(np.log2(output/target, **where))
-        mmsList.append(f'{mms:.4f}')
-        rmsList.append(f'{rms:4f}')
         
-    
-    return rmsList, mmsList, df['masspoints'].values.tolist()
+        ratio = output/target
+
+        mms = np.mean(np.log2(ratio, **where))
+        rms = np.std(np.log2(ratio, **where))
+        mmsList.append(f'{mms:.4f}')
+        rmsList.append(f'{rms:.4f}')
+        
+        s_hist, _ = np.histogram(np.clip(ratio, a_min=0, a_max=2), bins=101, range=(0,2.02))
+        sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+        rms2 = np.std(ratio, where=ratio<=2)
+
+        rmsList2.append(f'{rms2:.4f}')
+        sensitivityList.append(f'{sensitivity:.4f}')
+
+    return rmsList, mmsList, rmsList2, sensitivityList, df['masspoints'].values.tolist()
 
 
 if __name__ == "__main__":
