@@ -28,7 +28,7 @@ for part in parts:
 source ~/.bash_profile
 conda activate weaver
 cd /home/chosila/Projects/weaver
-python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_GluGluH_01J_Pt*' --data-config data/train/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/wide_{part}_{mod}_regr'''
+python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_SUSY_GluGluH_01J_HToAATo4B_Pt*50_mH-70_mA-12_wH-70_wA-70_TuneCP5_13TeV_madgraph_pythia8.root' --data-config data/train/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/wide_{part}_{mod}_regr'''
             f.write(txt)
 
 
@@ -71,13 +71,14 @@ cd /home/chosila/Projects/weaver
 
 ## predict script for centrally produced gluglu sample
 parts = ['a1' ,'H_calc']
-
+print(mods)
 with open('predict_mod_targets.sh', 'w+') as f:
         
     f.write('''source ~/.bashrc
 source ~/.bash_profile
 conda activate weaver
-cd /home/chosila/Projects/weaver''')
+cd /home/chosila/Projects/weaver
+''')
     for part in parts:
         for masspoint in [12,15,20,25,30,35,40,45,50,55,60]:
             for mod in mods:
@@ -85,15 +86,15 @@ cd /home/chosila/Projects/weaver''')
                 f.write(txt1)
 
 ## create the predict scripts 
-with open('predict_a_point_mass.sh','w+') as f:
-    f.write('''source ~/.bashrc
-source ~/.bash_profile
-    conda activate weaver
-    cd /home/chosila/Projects/weaver
-''')
-    for fn in os.listdir('/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/'):
-        if 'AK8_HToAATo4B_GluGluH_01J_Pt150_M-' in fn:
-            txt1=f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/{fn}' --data-config data/a1_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/GluGlu_a2_regr --predict-output output/predict_a1_{fn}\n"
-            txt2=f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/{fn}' --data-config data/a2_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/GluGlu_a2_regr --predict-output output/predict_a2_{fn}\n"
-            f.write(txt1)
-            f.write(txt2)
+# with open('predict_a_point_mass.sh','w+') as f:
+#     f.write('''source ~/.bashrc
+# source ~/.bash_profile
+#     conda activate weaver
+#     cd /home/chosila/Projects/weaver
+# ''')
+#     for fn in os.listdir('/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/'):
+#         if 'AK8_HToAATo4B_GluGluH_01J_Pt150_M-' in fn:
+#             txt1=f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/{fn}' --data-config data/a1_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/GluGlu_a2_regr --predict-output output/predict_a1_{fn}\n"
+#             txt2=f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/{fn}' --data-config data/a2_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/GluGlu_a2_regr --predict-output output/predict_a2_{fn}\n"
+#             f.write(txt1)
+#             f.write(txt2)

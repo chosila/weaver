@@ -1,7 +1,7 @@
 
 
 particles = ['H_calc', 'a1' ,'a2'] 
-targets = ['mass', 'logMass', '1overMass', 'massOverPT', 'logMassOverPT' ,'ptOverMass']
+targets = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT' ,'ptOverMass']
 eqns = ['fj_gen_H_aa_bbbb_mass_{particle}',
         'np.log(fj_gen_H_aa_bbbb_mass_{particle})',
         '1/fj_gen_H_aa_bbbb_mass_{particle}',
@@ -16,7 +16,10 @@ filenames = [f'{particle}_{target}_regr.yaml' for target in targets for particle
 
 txt = '''
 selection:
-   (label_H_aa_bbbb == 1) & (fj_pt > 200) & (fj_mass > 50) & (pfMassDecorrelatedParticleNetDiscriminatorsJetTags_XbbvsQCD > 0.1) & ((event_no % 2) == 1)
+   (label_H_aa_bbbb == 1) & (fj_pt > 170) & ((event_no % 2) == 0) 
+   ## selection for not Wide H. for wide H we have lower mass H, so we can have lower pt that still H 
+   ## (label_H_aa_bbbb == 1) & (fj_pt > 200) & (fj_mass > 50) & (pfMassDecorrelatedParticleNetDiscriminatorsJetTags_XbbvsQCD > 0.1) & ((event_no % 2) == 0)
+   
 
 test_time_selection:
    (fj_mass > 0)
