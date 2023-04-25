@@ -66,7 +66,7 @@ cd /home/chosila/Projects/weaver
     for mod in mods:
         for ptpoint in ['150', '250', '350']:
             for part in parts:
-                txt = f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_GluGluH_01J_Pt{ptpoint}_mH-70_mA-12_wH-70_wA-70.root' --data-config data/predict/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/wide_{part}_{mod}_regr --predict-output predict/predict_wide_{part}_pt{ptpoint}_{mod}_regr.root\n"
+                txt = f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_SUSY_GluGluH_01J_HToAATo4B_Pt{ptpoint}_mH-70_mA-12_wH-70_wA-70_TuneCP5_13TeV_madgraph_pythia8.root' --data-config data/predict/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/wide_{part}_{mod}_regr --predict-output predict/predict_wide_{part}_pt{ptpoint}_{mod}_regr.root\n"
                 f.write(txt)
 
 ## predict script for centrally produced gluglu sample
