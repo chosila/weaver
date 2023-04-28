@@ -5,6 +5,7 @@ import sklearn.metrics as metrics
 import pandas as pd
 import matplotlib as mpl
 import os
+import itertools 
 from matplotlib.colors import LogNorm
 #import pandas 
 
@@ -64,7 +65,7 @@ def main():
     ## TODO figure this shit out. is it all pt point in 1 plot? maybe 
     if wideH:
         for mod in mods: #for ptpnt, binrange in zip(ptpoints, binranges):
-            for part, binranges in zip(parts, binrangesList):
+            for part, binranges in zip(['H_calc'], [[(0,700), (-4,4)]]): #zip(parts, binrangesList):
                 fns = [f'predict/predict_wide_{part}_pt{ptpnt}_{mod}_regr.root' for ptpnt in ptpoints]
                 titles = [f'predict {part} {mod} wideH', f'target {part} {mod} wideH',
                           f'resolution {part} {mod} wideH', f'sensitivity {part} {mod} wideH']
@@ -77,7 +78,7 @@ def main():
 
         ## calculate the RMS values again to be saved to a csv 
         df = pd.DataFrame()
-        for part in parts:
+        for part in ['H_calc']:#parts:
             for mod in mods:
                 fns = [f'predict/predict_wide_{part}_pt{ptpnt}_{mod}_regr.root' for ptpnt in ptpoints]
                 rms, mms, rms2, sensitivity, masspoints = calc_RMS_MMS(ptpoints, fns)
@@ -96,9 +97,20 @@ def main():
                 fns = [f'predict/predict_wide_{part}_pt{ptpnt}_{mod}_regr.root' for ptpnt in ptpoints]
                 fs = [uproot.open(fn) for fn in fns]
                 gs = [f['Events'] for f in fs]
+                df = pd.DataFrame()
+                ## concatenate each in df 
                 output = np.concatenate([g['output'].array() for g in gs])
                 target = np.concatenate([g['target_mass'].array() for g in gs])
                 pt = np.concatenate([g['fj_pt'].array() for g in gs])
+                label_H_aa_bbbb = np.concatenate([g['label_H_aa_bbbb'].array() for g in gs])
+                df['output'] = output
+                df['target'] = target
+                df['pt'] = pt
+                df['label_H_aa_bbbb'] = label_H_aa_bbbb
+                df = df[df['label_H_aa_bbbb'] ==1]
+                output = df['output']
+                target = df['target']
+                pt = df['pt']
                 output, target, binrange = returnToMass(output, target, pt, fns[0])
                 fig, ax = plt.subplots()
                 hist = ax.hist2d(output, target, bins=70, range=(distrange, distrange),norm=mpl.colors.LogNorm())
@@ -109,115 +121,6 @@ def main():
                 plt.savefig(f'plots/correlation2D_{part}_{mod}.png')
                 plt.close()
 
-
-    import sys
-    sys.exit()
-
-    fns = [f'/home/chosila/Projects/weaver/output/predict_VarHMass_20000_{x}_regr.root' for x in ['H', 'a1', 'a2']]
-    names = ['H_mass_regr','a1_mass_regr','a2_mass_regr']
-    histranges = [[[122,128],[122,128]], [[10,60],[10,60]], [[10,60],[10,60]]]
-    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    # 10 - 13.5, 13.5 - 17.5, 17.5 - 22.5, 22.5 - 27.5, etc. up to 62.5, then 10 GeV bins up to 102.5
-    h1Dbins = [10, 13.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 72.5, 82.5, 92.5, 102.5]
-
-    for fn, name, histrange in zip(fns, names, histranges):
-        f = uproot.open(fn)
-        g = f['Events']
-        thresholds = np.linspace(0,1,300)
-    
-        if predType == 'regr':
-            fig, ax = plt.subplots()
-            output = g['output'].array()
-            target = g['target_mass'].array()
-            ax.set_xlabel('prediction')
-            ax.set_ylabel('target_mass')
-            ax.set_title(name)
-            loss = metrics.mean_squared_error(target, output)
-            hist = ax.hist2d(output, target, bins=20, norm=mpl.colors.LogNorm(), range=histrange)
-            fig.colorbar(hist[3], ax=ax)
-            ax.text(0.7, 0.85, f'MSE: {loss:.3f}', transform=ax.transAxes, bbox=props)
-            plt.savefig(f'plots/{name}.png')
-            plt.close()
-
-    if predType == 'bin':
-        for labelstr, scorestr, name in [('label_H_aa_bbbb', 'score_label_H_aa_bbbb', 'H_aa_bbbb'), ('label_H_aa_other', 'score_label_H_aa_other', 'H_aa_other'), ('sample_isQCD', 'score_sample_isQCD', 'is_QCD')]:
-            df = pd.DataFrame()
-            df['lab'] = np.array(g[labelstr].array())
-            df['score'] = np.array(g[scorestr].array())
-            df['mass'] = np.array(g['fj_mass'].array())
-            df['pt'] = np.array(g['fj_pt'].array())
-            df['eta'] = np.array(g['fj_eta'].array())
-            df = df[(df['mass'] < 140) & (df['mass'] > 110)]
-        
-        
-            labels = df['lab']#g[labelstr].array()
-            scores = df['score']#g[scorestr].array()
-            fpr, tpr, thresholds = metrics.roc_curve(labels, scores)#roc_curve(labels, scores, thresholds)
-            auc = metrics.auc(fpr, tpr)
-        
-            ## roc curve
-            print(f'auroc {auc}')
-            fig, ax = plt.subplots()
-            ax.set_title(name + ' & 110 < fj_mass < 140')
-            ax.set_xlabel('fpr')
-            ax.set_ylabel('tpr')
-            ax.plot(fpr,tpr, label=f'auc = {auc:.4f}')
-            ax.legend()
-            plt.savefig(f'plots/{name}_auc_masslimit.png')
-        
-        
-            ## efficiency vs pt at a certain threahold
-            threshold = 0.99
-            y, edges = np.histogram(df['pt'], bins=50)
-            binCenter = getBinCenter(edges)
-            tpArr = []
-            tpfnArr = []
-            
-            for i,x in enumerate(edges[:-1]):
-                edgepair = (edges[i], edges[i+1])
-                cutdf = df[(df['pt'] > edges[i]) & (df['pt'] < edges[i+1])]
-                y_pred = cutdf['score']
-                y_pred[y_pred >= threshold] = 1
-                y_pred[y_pred < threshold] = 0 
-                y_true = cutdf['lab']
-        
-                fp = np.sum((y_pred == 1) & (y_true == 0))
-                tp = np.sum((y_pred == 1) & (y_true == 1))
-        
-                fn = np.sum((y_pred == 0) & (y_true == 1))
-                tn = np.sum((y_pred == 0) & (y_true == 0))
-        
-                tpArr.append(tp)
-                tpfnArr.append(tp+fn)
-                #tprAtPt.append(tp / (tp + fn))
-                           
-            #tprAtPt = np.nan_to_num(np.array(tprAtPt), nan=0.0)
-            # pt efficiency plot
-            log = not ('bbbb' in name)
-            
-            makeEfficiencyPlot(f'{name} efficiency vs pt at threshold = {threshold}',
-                               'pt', 'efficiency', binCenter, tpArr, tpfnArr,
-                               f'{name}_ptEfficiency', log=log)
-        
-        
-
-def makeEfficiencyPlot(title, xlabel, ylabel, binCenter, tpArr, tpfnArr, pltname, log):
-    fig1, ax1 = plt.subplots()
-    ax1.set_title(title)
-    ax1.set_xlabel(xlabel)
-    ax1.set_ylabel(ylabel)
-    width = binCenter[1]-binCenter[0]
-    ax1.bar(binCenter, tpfnArr, width, alpha=0.5, label='true positives false negatives')
-    ax1.bar(binCenter, tpArr, width, alpha=0.5, label='true positives')
-    if log: ax1.set_yscale('log')
-    ax1.legend()
-    plt.savefig(f'plots/{pltname}.png')
-    plt.close(fig1)
-
-def getBinCenter(edges):
-    left = edges[:-1]
-    right = edges[1:]
-    return (left + right)/2
         
 
 def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
@@ -243,18 +146,32 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     sensitivityList = []
     rmsList2 = []
 
+    df = pd.DataFrame()
+
     for fn, label in zip(fl, labels):
         f = uproot.open(fn)
         g = f['Events']
-        output = g['output'].array()
-        target = g['target_mass'].array()
-        pt = g['fj_pt'].array()
+        dfsub = pd.DataFrame()
+        dfsub['output'] = g['output'].array()
+        dfsub['target'] = g['target_mass'].array()
+        dfsub['label_H_aa_bbbb'] = g['label_H_aa_bbbb'].array()
+        dfsub['pt'] = g['fj_pt'].array()
+        dfsub['fj_mass'] = g['fj_mass'].array()
+        dfsub['fj_sdmass'] = g['fj_sdmass'].array()
+        dfsub['fj_corrsdmass'] = g['fj_corrsdmass'].array()
+        dfsub['fj_sdmass_fromsubjets'] = g['fj_sdmass_fromsubjets'].array()
+        dfsub['pfParticleNetMassRegressionJetTags_mass'] = g['pfParticleNetMassRegressionJetTags_mass'].array()
+        dfsub = dfsub[dfsub['label_H_aa_bbbb']==1]
+        df = pd.concat([df, dfsub])
+        output = np.array(dfsub['output'])
+        target = np.array(dfsub['target'])
+        pt = np.array(dfsub['pt'])
         
         ## modify output and target back to mass if needed 
         output, target, binrange = returnToMass(output, target, pt, fn, binranges[0])
         
         ## 1D dists 
-        histdict = {'bins':nbins[0], 'range':binrange, 'histtype':'step', 'label':label}
+        histdict = {'bins':nbins[0], 'range':binrange, 'histtype':'step', 'label':f'{label} {len(output)}'}
         ax.hist(np.clip(output, a_min=binrange[0], a_max=binrange[1]), **histdict)
         ax2.hist(np.clip(target, a_min=binrange[0], a_max=binrange[1]),**histdict)
         histdict['bins'] = nbins[1]
@@ -285,6 +202,34 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         mmsList.append(f'{mms:.4f}')
         rmsList.append(f'{rms:.4f}')
         
+    ## create the RMS / MMS per mass ranges 
+    massrange = [0,80,95,110,135,180,99999]
+    labels = []
+    mmsList = []
+    rmsList = []
+    rmsList2 = []
+    sensitivityList = []
+    for lower, upper in pairwise(massrange):
+        labels.append(f'{lower} - {upper}')
+        tmpdf = df[(df['mass'] > lower) & (df['mass'] <= upper)]
+        
+        ## resolution
+        condition = (df['output'] !=0 ) | (df['target'] != 0)
+        
+        ratio = np.divide(df['output'][condition], df['target'][condition]).to_numpy()
+        mms = np.mean(np.log2(ratio, where=ratio>0))
+        rms = np.std(np.log2(ratio, where=ratio>0))
+        mmsList.append(f'{mms:.4E}')
+        rmsList.append(f'{rms:.4E}')
+
+        ## sensitivity 
+        s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+        binwidth = s_edge[1]-s_edge[0]
+        sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+        rm2 = np.std(ratio, where=ratio<=2)
+        sensitivityList.append(f'{sensitivity:.4E}')
+        rmsList2.append(f'{rm2:.4E}')
+
     ax3.table(
         colLabels=labels,
         rowLabels=['MMS', 'RMS'],
@@ -312,6 +257,22 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     fig3.savefig(f'plots/{plotnames[2]}.png', bbox_inches='tight')
     fig4.savefig(f'plots/{plotnames[3]}.png', bbox_inches='tight')
     plt.close('all')
+
+    ## other plots 
+    '''        
+    dfsub['fj_mass'] = g['fj_mass'].array()
+    dfsub['fj_sdmass'] = g['fj_sdmass'].array()
+    dfsub['fj_corrsdmass'] = g['fj_corrsdmass'].array()
+    dfsub['fj_sdmass_fromsubjets'] = g['fj_sdmass_fromsubjets'].array()
+    dfsub['pfParticleNetMassRegressionJetTags_mass'] = g['pfParticleNetMassRegressionJetTags_mass'].array()
+    '''
+    othervars = ['fj_mass', 'fj_sdmass', 'fj_corrsdmass', 'fj_sdmass_fromsubjets', 'pfParticleNetMassRegressionJetTags_mass']
+    for massvar in othervars: 
+        fig, ax = plt.subplots()
+        fig_res, ax_res = plt.subplots()
+        fig_sen, ax_sen = plt.subplots()
+        
+    
 
 def returnToMass(output, target, pt, fn, binrange=None):
 
@@ -382,6 +343,11 @@ def calc_RMS_MMS(masspoints, filenames, log2=False):
 
     return rmsList, mmsList, rmsList2, sensitivityList, df['masspoints'].values.tolist()
 
+def pairwise(iterable):
+    "[0,1,2,3...] -> (0,1), (1,2), (2,3)..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 if __name__ == "__main__":
     main()
