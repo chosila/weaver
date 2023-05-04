@@ -1,6 +1,55 @@
 import pandas as pd 
 import matplotlib.pyplot as plt
+import os 
+othervars = ['fj_mass', 'fj_sdmass', 'fj_corrsdmass', 'fj_sdmass_fromsubjets', 'pfParticleNetMassRegressionJetTags_mass']
+rmslog_fig, rmslog_ax = plt.subplots()
+mmslog_fig, mmslog_ax = plt.subplots()
+rmslin_fig, rmslin_ax = plt.subplots()
+sentlin_fig ,sentlin_ax = plt.subplots()
 
+
+for f in os.listdir('csv'):
+    if 'trend' not in f:
+        continue
+    df = pd.read_csv(f'csv/{f}')
+    massranges = df['mass_range']
+    xvals = range(len(massranges))
+    name = f.replace('.csv', '').replace('trend_', '')
+    rmslog_ax.plot(df['RMS_logRatio'], label=name)
+    mmslog_ax.plot(df['MMS_logRatio'], label=name)
+    rmslin_ax.plot(df['RMS_ratio'], label=name)
+    sentlin_ax.plot(df['sensitivity2'], label=name)
+    # mass_range,MMS_logRatio,RMS_logRatio,RMS_ratio,sensitivity2
+
+rmslog_ax.legend()
+mmslog_ax.legend()
+rmslin_ax.legend()
+sentlin_ax.legend()
+
+rmslog_ax.set_title('RMS logRatio')
+mmslog_ax.set_title('MMS logRatio')
+rmslin_ax.set_title('RMS ratio')
+sentlin_ax.set_title('Sensitivity^2')
+
+arr = [0,1,2,3,4,5]
+rmslog_ax.set_xticks(arr, massranges)
+mmslog_ax.set_xticks(arr, massranges)
+rmslin_ax.set_xticks(arr, massranges)
+sentlin_ax.set_xticks(arr, massranges)
+
+for axis in [rmslog_ax, mmslog_ax, rmslin_ax, sentlin_ax]:
+    box = axis.get_position()
+    axis.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    axis.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+rmslog_fig.savefig('plots/trend_rmslog.png')
+mmslog_fig.savefig('plots/trend_mmslog.png')
+rmslin_fig.savefig('plots/trend_rmslin.png')
+sentlin_fig.savefig('plots/trend_sensitivity.png')
+
+    
+import sys
+sys.exit()
 
 df = pd.read_csv('RMS_MMS_masspoints.csv')
 

@@ -11,6 +11,11 @@ from matplotlib.colors import LogNorm
 
 
 def main():
+    ## new training si this is so spaghetti. this will only do sensitivity and resolution
+    fn = ['predict/predict_wide_H_genHmassOverfj_mass.root','predict/predict_wide_H_logGenHmassOverfj_mass.root'] 
+    
+
+
     central = False
     wideH = True
 
@@ -140,6 +145,14 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     fig3, ax3 = plt.subplots( )
     fig4, ax4 = plt.subplots()
 
+    ## mass vars that are in the ntuple already
+    othervars = ['fj_mass', 'fj_sdmass', 'fj_corrsdmass', 'fj_sdmass_fromsubjets', 'pfParticleNetMassRegressionJetTags_mass']
+    massdists = {x:plt.subplots() for x in othervars}
+    massreses = {x:plt.subplots() for x in othervars}
+    masssens = {x:plt.subplots() for x in othervars}
+    fig_massres, ax_massres = plt.subplots()
+    fig_masssen, ax_masssen = plt.subplots()
+
     mmsList = []
     rmsList = []
 
@@ -151,11 +164,15 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     for fn, label in zip(fl, labels):
         f = uproot.open(fn)
         g = f['Events']
+        output = g['output'].array()
+        target = g['target_mass'].array()
+        pt = g['fj_pt'].array()
+        output, target, binrange = returnToMass(output, target, pt, fn, binranges[0])
         dfsub = pd.DataFrame()
-        dfsub['output'] = g['output'].array()
-        dfsub['target'] = g['target_mass'].array()
+        dfsub['output'] = output#g['output'].array()
+        dfsub['target'] = target#g['target_mass'].array()
         dfsub['label_H_aa_bbbb'] = g['label_H_aa_bbbb'].array()
-        dfsub['pt'] = g['fj_pt'].array()
+        dfsub['pt'] = pt#g['fj_pt'].array()
         dfsub['fj_mass'] = g['fj_mass'].array()
         dfsub['fj_sdmass'] = g['fj_sdmass'].array()
         dfsub['fj_corrsdmass'] = g['fj_corrsdmass'].array()
@@ -168,7 +185,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         pt = np.array(dfsub['pt'])
         
         ## modify output and target back to mass if needed 
-        output, target, binrange = returnToMass(output, target, pt, fn, binranges[0])
+        #output, target, binrange = returnToMass(output, target, pt, fn, binranges[0])
         
         ## 1D dists 
         histdict = {'bins':nbins[0], 'range':binrange, 'histtype':'step', 'label':f'{label} {len(output)}'}
@@ -176,7 +193,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         ax2.hist(np.clip(target, a_min=binrange[0], a_max=binrange[1]),**histdict)
         histdict['bins'] = nbins[1]
         histdict['range'] = binranges[1]
-        condition = (output !=0 ) | (target != 0) ## exluce where target or output is zero because breaks log
+        condition = (output > 0 ) | (target > 0) ## exluce where target or output is zero because breaks log
         ratio = np.divide(output[condition], target[condition] )
         
         ## resolution plot
@@ -201,7 +218,34 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         rms = np.std(np.log2(ratio, where=ratio>0))
         mmsList.append(f'{mms:.4f}')
         rmsList.append(f'{rms:.4f}')
-        
+
+        ## mass distributions and reosolutions 
+        othervars = ['fj_mass', 'fj_sdmass', 'fj_corrsdmass', 'fj_sdmass_fromsubjets', 'pfParticleNetMassRegressionJetTags_mass']
+        histdict['range'] = None
+        histdict['label'] = label
+        for massvar in othervars:
+            #massdists = {x:plt.subplots() for x in othervars}
+            #massreses = {x:plt.subplots() for xin othervars}
+            #masssens = {x:plt.subplots() for x in othervars}
+            ## distribution
+            massdists[massvar][1].hist(dfsub[massvar], **histdict)
+            massdists[massvar][1].set_title(massvar)            
+
+            ## ratio 
+            non_pNetMass = dfsub[massvar]
+            condition = (non_pNetMass > 0 ) | (target > 0) ## exluce where target or output is zero because breaks log                                                                          
+            ratio = np.divide(non_pNetMass[condition], target[condition] )
+            massreses[massvar][1].hist(np.clip(np.log2(ratio, where=ratio>0), a_min=binranges[1][0], a_max=binranges[1][1]), **histdict)
+            massreses[massvar][1].set_title(f'Resolution {massvar}/target')
+            
+            ## sensitivity
+            s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+            binwidth = s_edge[1]-s_edge[0]
+            sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+            masssens[massvar][1].step( s_edge[:-1] , s_hist, label=f'{label}')
+            masssens[massvar][1].set_title(f'Sensitivity {massvar}/target')                
+            
+
     ## create the RMS / MMS per mass ranges 
     massrange = [0,80,95,110,135,180,99999]
     labels = []
@@ -209,14 +253,16 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     rmsList = []
     rmsList2 = []
     sensitivityList = []
+    massvars_mmsList = {massvar:[] for massvar in othervars}
+    massvars_rmsList = {massvar:[] for massvar in othervars}
+    massvars_rmsList2 = {massvar:[] for massvar in othervars}
+    massvars_sensitivityList = {massvar:[] for massvar in othervars}
     for lower, upper in pairwise(massrange):
         labels.append(f'{lower} - {upper}')
-        tmpdf = df[(df['mass'] > lower) & (df['mass'] <= upper)]
-        
+        tmpdf = df[(df['fj_mass'] > lower) & (df['fj_mass'] <= upper)]
         ## resolution
-        condition = (df['output'] !=0 ) | (df['target'] != 0)
-        
-        ratio = np.divide(df['output'][condition], df['target'][condition]).to_numpy()
+        condition = (tmpdf['output'] > 0 ) | (tmpdf['target'] > 0)
+        ratio = np.divide(tmpdf['output'][condition], tmpdf['target'][condition]).to_numpy()
         mms = np.mean(np.log2(ratio, where=ratio>0))
         rms = np.std(np.log2(ratio, where=ratio>0))
         mmsList.append(f'{mms:.4E}')
@@ -230,6 +276,57 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         sensitivityList.append(f'{sensitivity:.4E}')
         rmsList2.append(f'{rm2:.4E}')
 
+        
+        for massvar in othervars:
+            ## resolution for non pNet masses 
+            condition = (tmpdf[massvar] > 0) | (tmpdf['target'] > 0)
+            ratio = np.divide(tmpdf[massvar][condition], tmpdf['target'][condition]).to_numpy()
+            mms = np.mean(np.log2(ratio, where=ratio>0))
+            rms = np.std(np.log2(ratio, where=ratio>0))
+
+            massvars_mmsList[massvar].append(f'{mms:.4E}')
+            massvars_rmsList[massvar].append(f'{rms:.4E}')
+
+            ## sensitivity for non pNet masses 
+            s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2, where=ratio>0), bins=101, range=(0,2.02))
+            binwidth = s_edge[1]-s_edge[0]
+            sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+            rm2 = np.std(ratio, where=ratio<=2)
+            massvars_rmsList2[massvar].append(f'{rm2:.4E}')
+            massvars_sensitivityList[massvar].append(f'{sensitivity:.4E}')
+                
+
+            
+    for massvar in othervars:
+        masssens[massvar][1].table(
+            colLabels=labels,
+            rowLabels=['sensitivity^2', 'RMS'],
+            cellText=[massvars_sensitivityList[massvar], massvars_rmsList2[massvar]],
+            bbox=[0.1, -0.3, 0.9, 0.2]
+        )
+        massreses[massvar][1].table(
+            colLabels=labels,
+            rowLabels=['MMS', 'RMS'],
+            cellText=[massvars_mmsList[massvar], massvars_rmsList[massvar]],
+            bbox=[0.1,-0.3, 0.9, 0.2]
+        )
+        massdists[massvar][1].legend()
+        massreses[massvar][1].legend()
+        masssens[massvar][1].legend()
+    
+        massdists[massvar][0].savefig(f'plots/dist_{massvar}.png', bbox_inches='tight')
+        massreses[massvar][0].savefig(f'plots/resolution_{massvar}.png', bbox_inches='tight')
+        masssens[massvar][0].savefig(f'plots/sensitivity_{massvar}.png', bbox_inches='tight')
+
+        ## making the csv 
+        csvdf = pd.DataFrame() 
+        csvdf['mass_range'] = [x for x in pairwise(massrange)]
+        csvdf['MMS_logRatio'] = massvars_mmsList[massvar]
+        csvdf['RMS_logRatio'] = massvars_rmsList[massvar]
+        csvdf['RMS_ratio'] = massvars_rmsList2[massvar]
+        csvdf['sensitivity2'] = massvars_sensitivityList[massvar]
+        csvdf.to_csv(f'trend_{massvar}.csv')
+    
     ax3.table(
         colLabels=labels,
         rowLabels=['MMS', 'RMS'],
@@ -244,6 +341,15 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         bbox=[0.1, -0.3, 0.9, 0.2]
     )
 
+    print('=========================================================')
+    print(fn)
+    print(',mass_range,MMS_logRatio,RMS_logRatio,RMS_ratio,sensitivity2')
+    number = 0
+    for m, rmslog, mmslog, rmslin, sens in zip(pairwise(massrange), rmsList, mmsList, rmsList2, sensitivityList):
+        
+        print(f'{number},"{m}",{rmslog},{mmslog},{rmslin},{sens}')
+        number+=1
+        
     ax.legend()
     ax2.legend()
     ax3.legend()
@@ -258,22 +364,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     fig4.savefig(f'plots/{plotnames[3]}.png', bbox_inches='tight')
     plt.close('all')
 
-    ## other plots 
-    '''        
-    dfsub['fj_mass'] = g['fj_mass'].array()
-    dfsub['fj_sdmass'] = g['fj_sdmass'].array()
-    dfsub['fj_corrsdmass'] = g['fj_corrsdmass'].array()
-    dfsub['fj_sdmass_fromsubjets'] = g['fj_sdmass_fromsubjets'].array()
-    dfsub['pfParticleNetMassRegressionJetTags_mass'] = g['pfParticleNetMassRegressionJetTags_mass'].array()
-    '''
-    othervars = ['fj_mass', 'fj_sdmass', 'fj_corrsdmass', 'fj_sdmass_fromsubjets', 'pfParticleNetMassRegressionJetTags_mass']
-    for massvar in othervars: 
-        fig, ax = plt.subplots()
-        fig_res, ax_res = plt.subplots()
-        fig_sen, ax_sen = plt.subplots()
         
-    
-
 def returnToMass(output, target, pt, fn, binrange=None):
 
     if 'logMassOverPT' in fn:
