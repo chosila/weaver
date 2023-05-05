@@ -7,15 +7,86 @@ import matplotlib as mpl
 import os
 import itertools 
 from matplotlib.colors import LogNorm
+
 #import pandas 
 
 
 def main():
     ## new training si this is so spaghetti. this will only do sensitivity and resolution
-    fn = ['predict/predict_wide_H_genHmassOverfj_mass.root','predict/predict_wide_H_logGenHmassOverfj_mass.root'] 
-    
+    fns = ['predict/predict_wide_H_genHmassOverfj_mass.root','predict/predict_wide_H_logGenHmassOverfj_mass.root'] 
+    for fn in fns:
+        f = uproot.open(fn)
+        g = f['Events']
+        df = pd.DataFrame()
+        df['output'] = g['output'].array()
+        df['target'] = g['target_mass'].array() 
+        df['fj_mass'] = g['fj_mass'].array()
+        df['genH_mass'] = g['fj_gen_H_aa_bbbb_mass_H'].array()
+        df['label'] = g['label_H_aa_bbbb'].array()
+        df = df[(df['label'] ==1) & (df['output']>0) & (df['target'] > 0)]
+        if 'log' in fn:
+            df['output'] = df['genH_mass']/np.exp(df['output'])
+            df['target'] = df['genH_mass']/np.exp(df['target'])
+        else:
+            df['output'] = df['genH_mass']/df['output']
+            df['target'] = df['genH_mass']/df['target']
+        
+            
+        dis_fig, dis_ax = plt.subplots()
+        res_fig, res_ax = plt.subplots()
+        sen_fig, sen_ax = plt.subplots()
+        
+        ## distribution
+        name = fn[fn.find('wide_H')+7].replace('.root', '')
+        hist_kwargs = {'bins':50, 'histtype':'step', 'label':name}
+        dis_ax.hist(df['output'], **hist_kwargs)
+        
+        ## reosolution
+        ratio = np.array(np.divide(df['output'], df['target']))
+        res_ax.hist(np.clip(np.log2(ratio), a_min=-4, a_max=-4), **hist_kwargs)
+        
+        ## sensitivity
+        s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+        binwidth = s_edge[1]-s_edge[0]
+        sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+        print(s_edge)
+        print(s_hist)
+        sen_ax.step( s_edge[:-1] , s_hist, **hist_kwargs)
 
+        massrange = [0,80,95,110,135,180,99999]
+        mmsList = []
+        rmsList = []
+        rmsList2 = []
+        sensitivityList = []
+        for lower, upper in pairwise(massrange):
+            tmpdf = df[(df['fj_mass'] > lower) & (df['fj_mass'] <= upper)]
+            condition = (tmpdf['output'] > 0 ) & (tmpdf['target'] > 0)
+            ratio = np.divide(tmpdf['output'][condition], tmpdf['target'][condition]).to_numpy()
+            mms = np.mean(np.log2(ratio, where=ratio>0))
+            rms = np.std(np.log2(ratio, where=ratio>0))
+            mmsList.append(f'{mms:.4E}')
+            rmsList.append(f'{rms:.4E}')
 
+            ## sensitivity
+            s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+            binwidth = s_edge[1]-s_edge[0]
+            sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+            rm2 = np.std(ratio, where=ratio<=2)
+            sensitivityList.append(f'{sensitivity:.4E}')
+            rmsList2.append(f'{rm2:.4E}')
+
+        ## add tables to resolution and sensitivity
+        
+        print('======================================')
+        print(fn)
+        print(',mass_range,MMS_logRatio,RMS_logRatio,RMS_ratio,sensitivity2')
+        number = 0
+        for m, rmslog, mmslog, rmslin, sens in zip(pairwise(massrange), rmsList, mmsList, rmsList2, sensitivityList):
+        
+            print(f'{number},"{m}",{rmslog},{mmslog},{rmslin},{sens}')
+            number+=1
+    plt.close('all')
+            
     central = False
     wideH = True
 
@@ -193,7 +264,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         ax2.hist(np.clip(target, a_min=binrange[0], a_max=binrange[1]),**histdict)
         histdict['bins'] = nbins[1]
         histdict['range'] = binranges[1]
-        condition = (output > 0 ) | (target > 0) ## exluce where target or output is zero because breaks log
+        condition = (output > 0 ) & (target > 0) ## exluce where target or output is zero because breaks log
         ratio = np.divide(output[condition], target[condition] )
         
         ## resolution plot
@@ -233,7 +304,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
 
             ## ratio 
             non_pNetMass = dfsub[massvar]
-            condition = (non_pNetMass > 0 ) | (target > 0) ## exluce where target or output is zero because breaks log                                                                          
+            condition = (non_pNetMass > 0 ) & (target > 0) ## exluce where target or output is zero because breaks log                                                                          
             ratio = np.divide(non_pNetMass[condition], target[condition] )
             massreses[massvar][1].hist(np.clip(np.log2(ratio, where=ratio>0), a_min=binranges[1][0], a_max=binranges[1][1]), **histdict)
             massreses[massvar][1].set_title(f'Resolution {massvar}/target')
@@ -261,7 +332,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         labels.append(f'{lower} - {upper}')
         tmpdf = df[(df['fj_mass'] > lower) & (df['fj_mass'] <= upper)]
         ## resolution
-        condition = (tmpdf['output'] > 0 ) | (tmpdf['target'] > 0)
+        condition = (tmpdf['output'] > 0 ) & (tmpdf['target'] > 0)
         ratio = np.divide(tmpdf['output'][condition], tmpdf['target'][condition]).to_numpy()
         mms = np.mean(np.log2(ratio, where=ratio>0))
         rms = np.std(np.log2(ratio, where=ratio>0))
@@ -279,7 +350,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         
         for massvar in othervars:
             ## resolution for non pNet masses 
-            condition = (tmpdf[massvar] > 0) | (tmpdf['target'] > 0)
+            condition = (tmpdf[massvar] > 0) & (tmpdf['target'] > 0)
             ratio = np.divide(tmpdf[massvar][condition], tmpdf['target'][condition]).to_numpy()
             mms = np.mean(np.log2(ratio, where=ratio>0))
             rms = np.std(np.log2(ratio, where=ratio>0))

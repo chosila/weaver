@@ -9,7 +9,7 @@ sentlin_fig ,sentlin_ax = plt.subplots()
 
 
 for f in os.listdir('csv'):
-    if 'trend' not in f:
+    if ('trend' not in f) or ('~' in f):
         continue
     df = pd.read_csv(f'csv/{f}')
     massranges = df['mass_range']
