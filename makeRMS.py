@@ -1,12 +1,30 @@
 import pandas as pd 
+import numpy as np
 import matplotlib.pyplot as plt
-import os 
+import os
+from itertools import cycle
+
+lines = ["-","--","-.",":"]
+linecycler = cycle(lines)
+
+## prevent color repeating 
+colormap = plt.cm.nipy_spectral
+number_of_plots = 12
+colors = colormap(np.linspace(0, 1, number_of_plots))
+
+
+
 othervars = ['fj_mass', 'fj_sdmass', 'fj_corrsdmass', 'fj_sdmass_fromsubjets', 'pfParticleNetMassRegressionJetTags_mass']
 rmslog_fig, rmslog_ax = plt.subplots()
 mmslog_fig, mmslog_ax = plt.subplots()
 rmslin_fig, rmslin_ax = plt.subplots()
 sentlin_fig ,sentlin_ax = plt.subplots()
 
+## prevent color repeating
+rmslog_ax.set_prop_cycle( 'color', colors)
+mmslog_ax.set_prop_cycle( 'color', colors)
+rmslin_ax.set_prop_cycle( 'color', colors)
+sentlin_ax.set_prop_cycle('color', colors)
 
 for f in os.listdir('csv'):
     if ('trend' not in f) or ('~' in f):
@@ -15,10 +33,11 @@ for f in os.listdir('csv'):
     massranges = df['mass_range']
     xvals = range(len(massranges))
     name = f.replace('.csv', '').replace('trend_', '')
-    rmslog_ax.plot(df['RMS_logRatio'], label=name)
-    mmslog_ax.plot(df['MMS_logRatio'], label=name)
-    rmslin_ax.plot(df['RMS_ratio'], label=name)
-    sentlin_ax.plot(df['sensitivity2'], label=name)
+    linestyle = next(linecycler)
+    rmslog_ax.plot(df['RMS_logRatio'], linestyle=linestyle,label=name)
+    mmslog_ax.plot(df['MMS_logRatio'], linestyle=linestyle,label=name)
+    rmslin_ax.plot(df['RMS_ratio'], linestyle=linestyle,label=name)
+    sentlin_ax.plot(df['sensitivity2'], linestyle=linestyle,label=name)
     # mass_range,MMS_logRatio,RMS_logRatio,RMS_ratio,sensitivity2
 
 rmslog_ax.legend()
@@ -32,10 +51,17 @@ rmslin_ax.set_title('RMS ratio')
 sentlin_ax.set_title('Sensitivity^2')
 
 arr = [0,1,2,3,4,5]
-rmslog_ax.set_xticks(arr, massranges)
-mmslog_ax.set_xticks(arr, massranges)
-rmslin_ax.set_xticks(arr, massranges)
-sentlin_ax.set_xticks(arr, massranges)
+xticks = [x.replace('(','').replace(')','').split(', ') for x in massranges]
+xticks = [f'{x[0]}-{x[1]}' for x in xticks]
+xticks[-1] = '180<'
+print(xticks)
+
+
+
+rmslog_ax.set_xticks(arr,  xticks)
+mmslog_ax.set_xticks(arr,  xticks)
+rmslin_ax.set_xticks(arr,  xticks)
+sentlin_ax.set_xticks(arr, xticks)
 
 for axis in [rmslog_ax, mmslog_ax, rmslin_ax, sentlin_ax]:
     box = axis.get_position()

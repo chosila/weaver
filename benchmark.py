@@ -8,12 +8,19 @@ import os
 import itertools 
 from matplotlib.colors import LogNorm
 
-#import pandas 
 
 
 def main():
+
     ## new training si this is so spaghetti. this will only do sensitivity and resolution
     fns = ['predict/predict_wide_H_genHmassOverfj_mass.root','predict/predict_wide_H_logGenHmassOverfj_mass.root'] 
+
+
+    f1 = uproot.open(fns[0])
+    f2 = uproot.open(fns[1])
+    g1 = f1['Events']
+    g2 = f2['Events'] 
+
     for fn in fns:
         f = uproot.open(fn)
         g = f['Events']
@@ -23,35 +30,34 @@ def main():
         df['fj_mass'] = g['fj_mass'].array()
         df['genH_mass'] = g['fj_gen_H_aa_bbbb_mass_H'].array()
         df['label'] = g['label_H_aa_bbbb'].array()
-        df = df[(df['label'] ==1) & (df['output']>0) & (df['target'] > 0)]
-        if 'log' in fn:
-            df['output'] = df['genH_mass']/np.exp(df['output'])
-            df['target'] = df['genH_mass']/np.exp(df['target'])
+
+        if 'predict/predict_wide_H_logGenHmassOverfj_mass.root' == fn:
+            df['output'] = df['fj_mass']*np.exp(df['output'])
+            df['target'] = df['fj_mass']*np.exp(df['target'])
         else:
-            df['output'] = df['genH_mass']/df['output']
-            df['target'] = df['genH_mass']/df['target']
+            df['output'] = df['fj_mass']*df['output']
+            df['target'] = df['fj_mass']*df['target']
         
-            
+        df = df[(df['label'] ==1) & (df['output']>0) & (df['target'] > 0)]
+
         dis_fig, dis_ax = plt.subplots()
         res_fig, res_ax = plt.subplots()
         sen_fig, sen_ax = plt.subplots()
         
         ## distribution
-        name = fn[fn.find('wide_H')+7].replace('.root', '')
+        name = fn[fn.find('wide_H')+7:].replace('.root', '')
         hist_kwargs = {'bins':50, 'histtype':'step', 'label':name}
         dis_ax.hist(df['output'], **hist_kwargs)
         
         ## reosolution
         ratio = np.array(np.divide(df['output'], df['target']))
-        res_ax.hist(np.clip(np.log2(ratio), a_min=-4, a_max=-4), **hist_kwargs)
+        res_ax.hist(np.clip(np.log2(ratio), a_min=-4, a_max=4), **hist_kwargs)
         
         ## sensitivity
         s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
         binwidth = s_edge[1]-s_edge[0]
         sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
-        print(s_edge)
-        print(s_hist)
-        sen_ax.step( s_edge[:-1] , s_hist, **hist_kwargs)
+        sen_ax.step( s_edge[:-1] , s_hist, label=name)
 
         massrange = [0,80,95,110,135,180,99999]
         mmsList = []
@@ -59,11 +65,22 @@ def main():
         rmsList2 = []
         sensitivityList = []
         for lower, upper in pairwise(massrange):
-            tmpdf = df[(df['fj_mass'] > lower) & (df['fj_mass'] <= upper)]
-            condition = (tmpdf['output'] > 0 ) & (tmpdf['target'] > 0)
-            ratio = np.divide(tmpdf['output'][condition], tmpdf['target'][condition]).to_numpy()
-            mms = np.mean(np.log2(ratio, where=ratio>0))
-            rms = np.std(np.log2(ratio, where=ratio>0))
+            print(fn)
+            print(f'{lower} - {upper}')
+
+            print('df.shape: ', df.iloc[:20])
+
+            tmpdf = df[(df['target'] > lower) & (df['target'] <= upper)]
+            tmpdf= tmpdf[ (tmpdf['output'] > 0 ) & (tmpdf['target'] > 0)]
+
+            
+            
+            print('tmpdf.shape after cut: ', tmpdf.shape)
+
+
+            ratio = np.divide(tmpdf['output'], tmpdf['target']).to_numpy()
+            mms = np.mean(np.log2(ratio))
+            rms = np.std(np.log2(ratio))
             mmsList.append(f'{mms:.4E}')
             rmsList.append(f'{rms:.4E}')
 
@@ -74,25 +91,51 @@ def main():
             rm2 = np.std(ratio, where=ratio<=2)
             sensitivityList.append(f'{sensitivity:.4E}')
             rmsList2.append(f'{rm2:.4E}')
-
-        ## add tables to resolution and sensitivity
         
+
+        ## printing out csv info
         print('======================================')
         print(fn)
         print(',mass_range,MMS_logRatio,RMS_logRatio,RMS_ratio,sensitivity2')
         number = 0
         for m, rmslog, mmslog, rmslin, sens in zip(pairwise(massrange), rmsList, mmsList, rmsList2, sensitivityList):
-        
-            print(f'{number},"{m}",{rmslog},{mmslog},{rmslin},{sens}')
+            print(f'{number},"{m}",{mmslog},{rmslog},{rmslin},{sens}')
             number+=1
+
+        ## add tables to resolution and sensitivity
+        labels = [x for x in pairwise(massrange)]
+        res_ax.table(
+            colLabels=labels,
+            rowLabels=['MMS', 'RMS'],
+            cellText=[mmsList, rmsList],
+            bbox=[0.1, -0.3, 0.9, 0.2]
+        )
+        sen_ax.table(
+            colLabels=labels,
+            rowLabels=['sensitivity^2', 'RMS'],
+            cellText=[sensitivityList, rmsList2],
+            bbox=[0.1, -0.3, 0.9, 0.2]
+        )
+        res_ax.legend()
+        sen_ax.legend()
+        dis_ax.set_title(f'distribution {name}')
+        res_ax.set_title(f'resolution {name}')
+        sen_ax.set_title(f'sensitivity {name}')
+        
+        dis_fig.savefig(f'plots/dist_{name}.png', bbox_inches='tight')
+        res_fig.savefig(f'plots/resolution_{name}.png', bbox_inches='tight')
+        sen_fig.savefig(f'plots/sensitivity_{name}.png', bbox_inches='tight')
+
     plt.close('all')
             
+
     central = False
     wideH = True
 
     parts = ['H_calc', 'a1', 'a2']
     mods = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
     parts.remove('a2')
+    mods.remove('1OverMass')
     ## centrally produced 
     mp1 = [12,20,30,40,50,60]
     mp2 = [15,25,35,45,55]
@@ -130,7 +173,7 @@ def main():
                 df[f'rms2_{mod}'] = rms2
                 df[f'sensitivity_{mod}'] = sensitivity
     
-        df.to_csv('RMS_MMS_masspoints.csv')
+        df.to_csv('csv/RMS_MMS_masspoints.csv')
 
     ## wide H 
     ptpoints = [150, 250, 350]
@@ -164,7 +207,7 @@ def main():
                 df[f'rms2_{mod}'] = rms2
                 df[f'sensitivity_{mod}'] = sensitivity
     
-        df.to_csv('RMS_MMS_masspoints.csv')
+        df.to_csv('csv/RMS_MMS_masspoints.csv')
 
 
         ## 2d correlations 
@@ -254,7 +297,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         output = np.array(dfsub['output'])
         target = np.array(dfsub['target'])
         pt = np.array(dfsub['pt'])
-        
+
         ## modify output and target back to mass if needed 
         #output, target, binrange = returnToMass(output, target, pt, fn, binranges[0])
         
@@ -330,14 +373,15 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     massvars_sensitivityList = {massvar:[] for massvar in othervars}
     for lower, upper in pairwise(massrange):
         labels.append(f'{lower} - {upper}')
-        tmpdf = df[(df['fj_mass'] > lower) & (df['fj_mass'] <= upper)]
+        tmpdf = df[(df['target'] > lower) & (df['target'] <= upper)]
         ## resolution
-        condition = (tmpdf['output'] > 0 ) & (tmpdf['target'] > 0)
-        ratio = np.divide(tmpdf['output'][condition], tmpdf['target'][condition]).to_numpy()
+        tmpdf= tmpdf[ (tmpdf['output'] > 0 ) & (tmpdf['target'] > 0)]
+        ratio = np.divide(tmpdf['output'], tmpdf['target']).to_numpy()
         mms = np.mean(np.log2(ratio, where=ratio>0))
         rms = np.std(np.log2(ratio, where=ratio>0))
         mmsList.append(f'{mms:.4E}')
         rmsList.append(f'{rms:.4E}')
+
 
         ## sensitivity 
         s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
@@ -365,7 +409,8 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
             rm2 = np.std(ratio, where=ratio<=2)
             massvars_rmsList2[massvar].append(f'{rm2:.4E}')
             massvars_sensitivityList[massvar].append(f'{sensitivity:.4E}')
-                
+               
+
 
             
     for massvar in othervars:
@@ -396,7 +441,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
         csvdf['RMS_logRatio'] = massvars_rmsList[massvar]
         csvdf['RMS_ratio'] = massvars_rmsList2[massvar]
         csvdf['sensitivity2'] = massvars_sensitivityList[massvar]
-        csvdf.to_csv(f'trend_{massvar}.csv')
+        csvdf.to_csv(f'csv/trend_{massvar}.csv')
     
     ax3.table(
         colLabels=labels,
@@ -418,7 +463,7 @@ def make1DDist(fl, titles, plotnames, labels, nbins, binranges, enable2D=False):
     number = 0
     for m, rmslog, mmslog, rmslin, sens in zip(pairwise(massrange), rmsList, mmsList, rmsList2, sensitivityList):
         
-        print(f'{number},"{m}",{rmslog},{mmslog},{rmslin},{sens}')
+        print(f'{number},"{m}",{mmslog},{rmslog},{rmslin},{sens}')
         number+=1
         
     ax.legend()
