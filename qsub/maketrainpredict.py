@@ -70,7 +70,7 @@ cd /home/chosila/Projects/weaver
                 f.write(txt)
 
 ## predict script for centrally produced gluglu sample
-parts = ['a1' ,'H_calc']
+parts = ['a1' ,'H_calc', 'a2']
 print(mods)
 with open('predict_mod_targets.sh', 'w+') as f:
         
@@ -81,8 +81,8 @@ cd /home/chosila/Projects/weaver
 ''')
     for part in parts:
         for masspoint in [12,15,20,25,30,35,40,45,50,55,60]:
-            for mod in mods:
-                txt1=f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH_01J_Pt150_M-{masspoint}.root' --data-config data/predict/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/central_{part}_{mod}_regr --predict-output predict/predict_central_{part}_M{masspoint}_{mod}_regr.root\n"
+            for mod in ['mass']:#mods:
+                txt1=f"python train.py --predict --regression-mode --data-test '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH_01J_Pt150_M-{masspoint}.root' --data-config data/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --model-prefix output/central_{part}_{mod}_regr --predict-output predict/predict_central_{part}_M{masspoint}_{mod}_regr.root\n"
                 f.write(txt1)
 
 ## create the predict scripts 

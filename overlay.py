@@ -12,19 +12,19 @@ from itertools import cycle
 
 fnslist = [[f'predict/predict_wide_H_calc_pt{ptpoint}_logMass_regr.root' for ptpoint in [150, 250,350]],
            #[f'predict/predict_wide_H_calc_pt{ptpoint}_massOverPT_regr.root' for ptpoint in [150, 250, 350]],
-           #['predict/predict_wide_H_genHmassOverfj_mass.root'],
+           ['predict/predict_wide_H_genHmassOverfj_mass.root'],
            ['predict/predict_wide_H_logGenHmassOverfj_mass.root'],
            ]
 
 labels = ['logMass', 'massOverPT', 'genHmassOverfj_mass', 'logGenHmassOverfj_mass']
 labels.remove('massOverPT')
-labels.remove('genHmassOverfj_mass')
+#labels.remove('genHmassOverfj_mass')
 variables = ['fj_sdmass', 'fj_mass', 'pfParticleNetMassRegressionJetTags_mass']
 massrange = [0,80,95,110,135,180,99999]
 
 lines = ["-"]#,"--","-.",":"]
 linecycler = cycle(lines)
-fig, ax = plt.subplots()
+#fig, ax = plt.subplots()
 pltdict = {f'{l}-{u}':plt.subplots() for l,u in pairwise(massrange)}
 pltdict_log = {f'{l}-{u}':plt.subplots() for l,u in pairwise(massrange)}
 rmslog_dict = {f'{l}-{u}':[] for l,u in pairwise(massrange)}
@@ -38,6 +38,8 @@ nbins = 70
 
 
 for fns, label in zip(fnslist, labels):
+    hoverfj_fig, hoverfj_ax = plt.subplots()
+    loghoverfj_fig, loghoverfj_ax = plt.subplots()
     df = pd.DataFrame()
     for fn in fns:
         tmpdf = pd.DataFrame()
@@ -72,12 +74,22 @@ for fns, label in zip(fnslist, labels):
 
 
     linestyle = next(linecycler)
-    ax.hist(df['output']/df['target'], bins=50, histtype='step', linestyle=linestyle, label=label)
-    ax.set_title('output/target')
+    #ax.hist(df['output']/df['target'], bins=50, histtype='step', linestyle=linestyle, label=label)
+    #ax.set_title(f'resolution {label}')
+    ratio = df['output']/df['target']
+    if 'logGenHmassOverfj_mass' == label :
+        loghoverfj_ax.hist(np.clip(np.log2(ratio), a_min=-4, a_max=4), bins=50, histtype='step', linestyle=linestyle, label=label)
+    elif 'genHmassOverfj_mass' == label:
+        hoverfj_ax.hist(np.clip(np.log2(ratio), a_min=-4, a_max=4), bins=50, histtype='step', linestyle=linestyle, label=label)
 
     ## plot by massrange 
     for lower, upper in pairwise(massrange):
-        name = label if len(label) < 15 else label[:15]
+        if label == 'genHmassOverfj_mass':
+            name = 'massOverfj_mass'
+        elif label == 'logGenHmassOverfj_mass':
+            name = 'logMassOverfj_mass'
+        else:
+            name = label if len(label) < 15 else label[:15]
         linestyle = next(linecycler)
 
         print(fn)
@@ -167,8 +179,12 @@ for lower,upper in pairwise(massrange):
     pltdict_log[key][1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
     pltdict_log[key][0].savefig(f'plots/genmass/log_{key}.png', bbox_inches='tight')
     
-    
-ax.legend()    
-fig.savefig('plots/genmass/wholeRange.png', bbox_inches='tight')
+
+
+loghoverfj_ax.set_title('resolution H_calc logMassOverfj_mass')
+hoverfj_ax.set_title('resolution H_calc massOverfj_mass')
+loghoverfj_fig.savefig('plots/genmass/resolution_H_calc_logMassOverfj_mass.png', bbox_inches='tight')
+hoverfj_fig.savefig('plots/genmass/resolution_H_calc_massOverfj_mass.png', bbox_inches='tight')
+
     
     

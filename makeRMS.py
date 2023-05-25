@@ -9,7 +9,7 @@ linecycler = cycle(lines)
 
 ## prevent color repeating 
 colormap = plt.cm.nipy_spectral
-number_of_plots = 12
+number_of_plots = 7#12
 colors = colormap(np.linspace(0, 1, number_of_plots))
 
 
@@ -33,7 +33,12 @@ for f in os.listdir('csv'):
     massranges = df['mass_range']
     xvals = range(len(massranges))
     name = f.replace('.csv', '').replace('trend_', '')
+    if (name in ['fj_sdmass_fromsubjets', 'fj_sdmass',  'fj_corrsdmass', 'pfParticleNetMassRegressionJetTags_mass', 'fj_mass']):
+        continue
+    
     linestyle = next(linecycler)
+    #[x.set_yscale('log') for x in [rmslog_ax, mmslog_ax, rmslin_ax, sentlin_ax]]
+    
     rmslog_ax.plot(df['RMS_logRatio'], linestyle=linestyle,label=name)
     mmslog_ax.plot(df['MMS_logRatio'], linestyle=linestyle,label=name)
     rmslin_ax.plot(df['RMS_ratio'], linestyle=linestyle,label=name)

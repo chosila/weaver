@@ -22,7 +22,7 @@ selection:
    
 
 test_time_selection:
-   (fj_mass > 0)
+   (fj_mass > 0) & ((event_no % 2) == 1)
 
 new_variables:
    pfcand_mask: awkward.JaggedArray.ones_like(pfcand_etarel)
