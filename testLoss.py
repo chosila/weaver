@@ -58,16 +58,18 @@ for mod in mods:
         dis_ax.hist(df['output'], range=(0,400), **histkwarg)
         
         ## resolution
-        ratio = np.clip(np.divide(df['output'] , df['target_mass']), a_min=0,a_max=2)
-        res_ax.hist(np.log2(ratio), range=(-2,2),**histkwarg)
+        ratio = np.divide(df['output'] , df['target_mass'])
+        log2ratio = np.clip(np.log2(ratio), a_min=-2, a_max=2)
+        ratio = np.clip(ratio, a_min=0, a_max=2)
+        res_ax.hist(log2ratio, range=(-2,2),**histkwarg)
         ## sensitivity
-        s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+        s_hist, s_edge = np.histogram(ratio, bins=101, range=(0,2.02))
         binwidth = s_edge[1]-s_edge[0]
         sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
         sen_ax.step( s_edge[:-1] , s_hist, label='loss mode {lm}')
 
-        rms_log.append(round(np.std(np.log2(ratio)),4))
-        mms_log.append(round(np.mean(np.log2(ratio)),4))
+        rms_log.append(round(np.std(log2ratio),4))
+        mms_log.append(round(np.mean(log2ratio),4))
         rms_lin.append(round(np.std(ratio),4))
         sen_lin.append(round(sensitivity,4))
 
@@ -81,8 +83,10 @@ for mod in mods:
         ## calculate scores for various mass ranges
         for lower, upper in pairwise(massrange):
             cutdf = df[(df['target_mass'] > lower) & (df['target_mass'] <= upper)]
-            ratio = np.clip(np.divide(cutdf['output'], cutdf['target_mass']), a_min=0, a_max=2)
-            s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+            ratio = np.divide(cutdf['output'], cutdf['target_mass'])
+            log2ratio = np.clip(np.log2(ratio), a_min=-2, a_max=2)
+            ratio = np.clip(ratio, a_min=0, a_max=2)
+            s_hist, s_edge = np.histogram(ratio, bins=101, range=(0,2.02))
             binwidth = s_edge[1]-s_edge[0]
             sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
         
@@ -93,8 +97,8 @@ for mod in mods:
             
             rmslin_dict[f'{mod}_loss{lm}'].append(round(np.std(ratio),4))
             senlin_dict[f'{mod}_loss{lm}'].append(round(sensitivity,4))  
-            rmslog_dict[f'{mod}_loss{lm}'].append(round(np.std(np.log2(ratio)),4))  
-            mmslog_dict[f'{mod}_loss{lm}'].append(round(np.mean(np.log2(ratio)),4))
+            rmslog_dict[f'{mod}_loss{lm}'].append(round(np.std(log2ratio),4))  
+            mmslog_dict[f'{mod}_loss{lm}'].append(round(np.mean(log2ratio),4))
             mmslin_dict[f'{mod}_loss{lm}'].append(round(np.mean(ratio),4))  
             
             
@@ -225,7 +229,6 @@ for lower, upper in pairwise(massrange):
     res_fig, res_ax = plt.subplots()
     sen_fig, sen_ax = plt.subplots()
     for fn, label in zip(fns, labels):
-        if 'logMass' not in label: continue
         df = pd.DataFrame()
         f = uproot.open(fn)
         g = f['Events']
@@ -240,29 +243,31 @@ for lower, upper in pairwise(massrange):
 
         df = df[(df['output'] > 0) & (df['target_mass'] > 0) & (df['label_H_aa_bbbb']==1)]
         cutdf = df[(df['target_mass'] > lower) & (df['target_mass'] <= upper)]
-        ratio = np.clip(cutdf['output']/cutdf['target_mass'], a_min=0, a_max=2)
+        ratio = cutdf['output']/cutdf['target_mass']
+        log2ratio = np.clip(np.log2(ratio), a_min=-2, a_max=2)
+        ratio = np.clip(ratio, a_min=0, a_max=2)
         histkwarg['label'] = label
 
         ## resolution
         #resplts[k][1].hist(np.log2(ratio), range=(-1,2), **histkwarg)
-        res_ax.hist(np.clip(np.log2(ratio), a_min=-2, a_max=2), range=(-2,2), **histkwarg)
+        res_ax.hist(log2ratio, range=(-2,2), **histkwarg)
         ## sensitivity
-        s_hist, s_edge = np.histogram(np.clip(ratio,a_min=0, a_max=2), bins=101, range=(0,2.02))
+        s_hist, s_edge = np.histogram(ratio, bins=101, range=(0,2.02))
         binwidth = s_edge[1]-s_edge[0]
         sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
         #senplts[k][1].step( s_edge[:-1] , s_hist, label='loss mode {lm}')
         #sen_ax.step( s_edge[:-1] , s_hist, label=label)
-        sen_ax.hist(np.clip(ratio, a_min=0, a_max=2), range=(0,2), **histkwarg)
+        sen_ax.hist(ratio, range=(0,2), **histkwarg)
 
-        rms_log[k].append(round(np.std(np.log2(ratio)),4))
-        mms_log[k].append(round(np.mean(np.log2(ratio)),4))
+        rms_log[k].append(round(np.std(log2ratio),4))
+        mms_log[k].append(round(np.mean(log2ratio),4))
         rms_lin[k].append(round(np.std(ratio),4))
         sen_lin[k].append(round(sensitivity,4))
         mms_lin[k].append(round(np.mean(ratio),4))
         
-        if lower >= 110:
-            logmass_ax.hist(np.clip(ratio, a_min=0, a_max=2), label=f'{lower}-{upper}:rms:{round(np.std(ratio),4)}', bins=100, histtype='step')
-            print(max(ratio))
+        #if lower >= 110:
+        #    logmass_ax.hist(np.clip(ratio, a_min=0, a_max=2), label=f'{lower}-{upper}:rms:{round(np.std(ratio),4)}', bins=100, histtype='step')
+        #    print(max(ratio))
         # {'bins':100, 'histtype':'step', 'label':f'loss mode {lm}', }
     res_ax.legend()
     sen_ax.legend()
@@ -274,8 +279,8 @@ for lower, upper in pairwise(massrange):
     sen_fig.savefig(f'plots/testLoss/sensitivity_mass({lower}-{upper}).png', bbox_inches='tight')
     print(f'save plots/testLoss/sensitivity_mass({lower}-{upper}).png')
     plt.close('all')
-    logmass_ax.legend()
-    logmass_fig.savefig(f'plots/testLoss/logmassallrange.png', bbox_inches='tight')
+    #logmass_ax.legend()
+    #logmass_fig.savefig(f'plots/testLoss/logmassallrange.png', bbox_inches='tight')
 
 ## write out the things
 rms_log= pd.DataFrame(rms_log)
