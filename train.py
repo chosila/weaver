@@ -271,7 +271,6 @@ def test_load(args):
             file_dict[name] += files
         else:
             file_dict[name] = files
-
     # sort files
     for name, files in file_dict.items():
         file_dict[name] = sorted(files)
@@ -292,21 +291,11 @@ def test_load(args):
                                       name='test_' + name)
         test_loader = DataLoader(test_data, num_workers=num_workers, batch_size=args.batch_size, drop_last=False,
                                  pin_memory=True)
-
+        
         return test_loader
+
     test_loaders = {name: functools.partial(get_test_loader, name) for name in file_dict}
     data_config = SimpleIterDataset({}, args.data_config, for_training=False).config
-
-
-
-    print('-------------------------------------------')
-
-    for i in test_loaders:
-        print(i)
-
-    print('-------------------------------------------')
-
-
 
     return test_loaders, data_config
 
@@ -323,6 +312,7 @@ def onnx(args, model, data_config, model_info):
     assert (args.export_onnx.endswith('.onnx'))
     model_path = args.model_prefix
     _logger.info('Exporting model %s to ONNX' % model_path)
+    print(model_path)
     model.load_state_dict(torch.load(model_path, map_location='cpu'))
     model = model.cpu()
     model.eval()
@@ -334,7 +324,7 @@ def onnx(args, model, data_config, model_info):
                       input_names=model_info['input_names'],
                       output_names=model_info['output_names'],
                       dynamic_axes=model_info.get('dynamic_axes', None),
-                      opset_version=13)
+                      opset_version=12)#13)
     _logger.info('ONNX model saved to %s', args.export_onnx)
 
     preprocessing_json = os.path.join(os.path.dirname(args.export_onnx), 'preprocess.json')
@@ -386,7 +376,6 @@ def profile(args, model, model_info, device):
 
     def trace_handler(p):
         output = p.key_averages().table(sort_by="self_cuda_time_total", row_limit=50)
-        print(output)
         p.export_chrome_trace("/tmp/trace_" + str(p.step_num) + ".json")
 
     with profile(
@@ -569,6 +558,9 @@ def model_setup(args, data_config):
         loss_func = torch.nn.CrossEntropyLoss()
         _logger.warning('Loss function not defined in %s. Will use `torch.nn.CrossEntropyLoss()` by default.',
                         args.network_config)
+    print('-------------------------------------------')
+    print(model)
+    print('------------------------------------------')
     return model, model_info, loss_func
 
 

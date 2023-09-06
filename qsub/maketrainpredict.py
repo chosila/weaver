@@ -11,15 +11,13 @@ for part in parts:
 source ~/.bash_profile
 conda activate weaver
 cd /home/chosila/Projects/weaver
-python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH_01J_Pt150_M-*' --data-config data/{part}_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/GluGlu_{part}_regr'''
+python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH_01J_Pt150_M-*' --data-config data/{part}_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/GluGlu_{part}_regr '''
         txtf.write(txt)
 
 
 
-
-
 ## create modified mass target training scripts
-mods = ['mass', 'logMass', '1OverMass', 'massOverPT', 'logMassOverPT', 'ptOverMass']
+mods = ['mass', 'logMass', 'massOverPT', 'logMassOverPT', 'ptOverMass', 'massOverfj_mass']
 parts = ['H_calc', 'a1' ,'a2']
 for part in parts:
     for mod in mods:
@@ -28,7 +26,7 @@ for part in parts:
 source ~/.bash_profile
 conda activate weaver
 cd /home/chosila/Projects/weaver
-python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_SUSY_GluGluH_01J_HToAATo4B_Pt*50_mH-70_mA-12_wH-70_wA-70_TuneCP5_13TeV_madgraph_pythia8.root' --data-config data/train/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/wide_{part}_{mod}_regr'''
+python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_SUSY_GluGluH_01J_HToAATo4B_Pt*50_mH-70_mA-12_wH-70_wA-70_TuneCP5_13TeV_madgraph_pythia8.root' --data-config data/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/wide_{part}_{mod}_regr '''
             f.write(txt)
 
 
@@ -40,11 +38,12 @@ for part in parts:
     source ~/.bash_profile
     conda activate weaver
     cd /home/chosila/Projects/weaver
-    python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH*' --data-config data/train/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/central_{part}_{mod}_regr'''
+    python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH*' --data-config data/{part}_{mod}_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/central_{part}_{mod}_regr --export-onnx output/onnx/central_{part}_{mod}_regr.onnx'''
                 f.write(txt)
 
         
 
+## script to submit all training
 with open('submitall.sh', 'w+') as f:
     for fn in os.listdir('.'):
         if ('train' in fn):
@@ -55,6 +54,21 @@ with open('submitall.sh', 'w+') as f:
 
         
 
+## file to export to onnx
+with open('exportToOnnx.sh', 'w+') as f:
+    txt = f'''source ~/.bashrc
+source ~/.bash_profile
+conda activate weaver
+cd /home/chosila/Projects/weaver
+    '''
+    f.write(txt)        
+    for part in ['H_calc']: #parts:
+        for mod in mods:
+            
+            txt = f'python train.py -c data/{part}_{mod}_regr.yaml -n networks/particle_net_pf_sv.py -m /home/chosila/Projects/weaver/output/wide_{part}_{mod}_regr_best_epoch_state.pt --export-onnx output/onnx/wide_{part}_{mod}_regr.onnx \n'
+            f.write(txt)
+
+    
 ## predict for wide H mass 
 with open('predict_wideH_mod_targets.sh', 'w+') as f:
     f.write('''source ~/.bashrc
