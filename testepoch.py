@@ -23,7 +23,7 @@ loss_modes = [0,3]#[0,1,3]
 massrange = [0,80,95,110,135,180,99999]
 #loss_modes.remove(2)
 vs = ['output', 'target_mass', 'label_H_aa_bbbb', 'fj_mass', 'event_no' ]
-epochs = [8, 16, 24, 32, 40] # [10,15,20,25,30,35,40]
+epochs = [0, 1, 2, 4, 6, 8, 12, 16] # [10,15,20,25,30,35,40]
 from itertools import cycle
 
 lines = ["-","--","-.",":"]
@@ -73,7 +73,7 @@ massranges = [x[x.find('_M-')+3:].split('.root')[0] for x in flist]
 massranges = [float(x) for x in massranges]
 massranges.sort()
 
-massranges = [12.5, 21.5, 57.5]
+#massranges = [12.5, 16.0, 21.5, 32.5, 45, 57.5]
 
 ## test overtrain for each mod, multiple epochs, one mass range
 for mod in mods:
@@ -140,10 +140,11 @@ for mod in mods:
             senplt = plt.subplots(figsize=figsize)
 
                 
-            for pltobj, testval, trainval, savename in zip([mmslog, rmslin, rmslog, senplt],
+            for pltobj, testval, trainval, savename, yrange in zip([mmslog, rmslin, rmslog, senplt],
                                                            [mmslogtestlist, rmslintestlist, rmslogtestlist, senlintestlist],
                                                            [mmslogtrainlist, rmslintrainlist, rmslogtrainlist, senlintrainlist],
-                                                           ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity']):
+                                                                   ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
+                                                                   [(-.4, .4), (0,.3), (0,.4), (0,15)]):
 
                 xticks = [str(x) for x in epochs]
                 arr = list(range(len(xticks)))
@@ -154,8 +155,9 @@ for mod in mods:
                 plt.grid()
                 pltobj[1].legend()
                 pltobj[1].set_title(f'compare {savename} train/test performance {mod} loss{lm} mass point {massrange}')
+                pltobj[1].set_ylim([yrange[0], yrange[1]])
                 #Path(f"plots/testepoch/").mkdir(parents=True, exist_ok=True)
-                pltobj[0].savefig(f'plots/testepoch/train_test_{mod}_loss{lm}_{savename}_masspoint{massrange}.png', bbox_inches='tight')
+                pltobj[0].savefig(f'plots/testepoch/{savename}_train_test_{mod}_loss{lm}_masspoint{massrange}.png', bbox_inches='tight')
                 plt.close(pltobj[0])
                 
 
