@@ -12,8 +12,8 @@ from matplotlib.colors import LogNorm
 from benchmark import pairwise 
 
 #predict_wide_H_calc_mass_regr_loss1.root
-mods = ['mass', 'logMass', 'massOverfj_mass']
-loss_modes = [0,1,3]
+mods = ['mass']#['mass', 'logMass', 'massOverfj_mass']
+loss_modes = [0,3]#[0,1,3]
 massrange = [0,80,95,110,135,180,99999]
 #loss_modes.remove(2)
 vs = ['output', 'target_mass', 'label_H_aa_bbbb', 'fj_mass' ]
@@ -73,6 +73,9 @@ for mod in mods:
         rms_lin.append(round(np.std(ratio),4))
         sen_lin.append(round(sensitivity,4))
 
+
+        print(df['output'])
+        
 
         rmslin_dict[f'{mod}_loss{lm}'] = [] 
         senlin_dict[f'{mod}_loss{lm}'] = [] 

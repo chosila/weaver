@@ -68,98 +68,207 @@ flist = [
     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2018/AK8_HToAATo4B_GluGluH_01J_Pt150_M-9.5.root',
 ]
 
+## f list for 2016 and 2017
+# flist = [
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-12.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-15.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-20.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-25.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-30.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-35.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-40.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-45.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-50.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-55.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2016/AK8_HToAATo4B_GluGluH_01J_Pt150_M-60.root',
+#     ]
+# flist = [
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-12.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-15.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-20.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-25.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-30.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-35.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-40.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-45.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-50.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-55.root',
+#     '/cms/data/store/user/abrinke1/Trees/HtoAAto4B/ParticleNet/Ntuples/2024_04_01/2017/AK8_HToAATo4B_GluGluH_01J_Pt150_M-60.root',
+#     ]
+
 ## strip after M-.....root, strip.root,
 massranges = [x[x.find('_M-')+3:].split('.root')[0] for x in flist]
 massranges = [float(x) for x in massranges]
 massranges.sort()
+massranges = massranges[::2]
 
 #massranges = [12.5, 16.0, 21.5, 32.5, 45, 57.5]
+
+figsize = (9,6.7)
+rmslintestoverlays = plt.subplots(figsize=figsize)
+senlintestoverlays = plt.subplots(figsize=figsize)
+mmslogtestoverlays = plt.subplots(figsize=figsize)
+rmslogtestoverlays = plt.subplots(figsize=figsize)
+rmslindiffoverlays = plt.subplots(figsize=figsize) 
+senlindiffoverlays = plt.subplots(figsize=figsize) 
+rmslogdiffoverlays = plt.subplots(figsize=figsize) 
+mmslogdiffoverlays = plt.subplots(figsize=figsize) 
 
 ## test overtrain for each mod, multiple epochs, one mass range
 for mod in mods:
     for lm in loss_modes:
-        for massrange in massranges:
-            rmslintestlist = []
-            senlintestlist = []
-            mmslogtestlist = []
-            rmslogtestlist = []
-
-            rmslintrainlist = []
-            senlintrainlist = []
-            mmslogtrainlist = []
-            rmslogtrainlist = []
+        rmslintestlist = []
+        senlintestlist = []
+        mmslogtestlist = []
+        rmslogtestlist = []
+        
+        rmslintrainlist = []
+        senlintrainlist = []
+        mmslogtrainlist = []
+        rmslogtrainlist = []
+        for massrange in massranges:            
+            fn = f'predict/testepoch/predict_a1_calc_{mod}_regr_loss{lm}_epoch20.root'
+            df = pd.DataFrame()
+            f = uproot.open(fn)
+            g = f['Events']
             
-            for epoch in epochs: 
-                fn = f'predict/testepoch/predict_a1_calc_{mod}_regr_loss{lm}_epoch{epoch}.root'
-                df = pd.DataFrame()
-                f = uproot.open(fn)
-                g = f['Events']
-                print(np.array(g['output'].array()))
-                
-                for v in vs:
-                    
-                    df[v] = np.array(g[v].array())
-                if mod == 'logMass':
-                    df['output'] = np.exp(df['output'])
-                    df['target_mass'] = np.exp(df['target_mass'])
-                dftest = df[(df['output'] > 0) & (df['target_mass'] > 0) & (df['label_H_aa_bbbb']==1) & (df['event_no']%2==1)]
-                dftrain = df[(df['output'] > 0) & (df['target_mass'] > 0) & (df['label_H_aa_bbbb']==1) & (df['event_no']%2==0)]
-                dftest = dftest[np.isclose(dftest['target_mass'], massrange, rtol=1e-03, atol=1e-05)]
-                dftrain = dftrain[np.isclose(dftrain['target_mass'], massrange, rtol=1e-03, atol=1e-05)]   
-                
-                dftest['ratio'] = np.divide(dftest['output'] , dftest['target_mass'])
-                dftrain['ratio'] = np.divide(dftrain['output'] , dftrain['target_mass'])
-                dftest['log2ratio'] = np.clip(np.log2(dftest['ratio']), a_min=-2, a_max=2)
-                dftrain['log2ratio'] = np.clip(np.log2(dftrain['ratio']), a_min=-2, a_max=2)
+            for v in vs:
+                df[v] = np.array(g[v].array())
+            if mod == 'logMass':
+                df['output'] = np.exp(df['output'])
+                df['target_mass'] = np.exp(df['target_mass'])
+            dftest = df[(df['output'] > 0) & (df['target_mass'] > 0) & (df['label_H_aa_bbbb']==1) & (df['event_no']%2==1)]
+            dftrain = df[(df['output'] > 0) & (df['target_mass'] > 0) & (df['label_H_aa_bbbb']==1) & (df['event_no']%2==0)]
 
-                
-                ## calculate rms and stuff
-                rmslintestlist.append(np.std(dftest['ratio']))
-                mmslogtestlist.append(np.mean(dftest['log2ratio']))
-                rmslogtestlist.append(np.std(dftest['log2ratio']))
+            dftest = dftest[np.isclose(dftest['target_mass'], massrange, rtol=1e-03, atol=1e-05)]
+            dftrain = dftrain[np.isclose(dftrain['target_mass'], massrange, rtol=1e-03, atol=1e-05)]   
+            
 
-                s_hist, s_edge = np.histogram(dftest['ratio'], bins=101, range=(0,2.02))
-                binwidth = s_edge[1]-s_edge[0]
-                sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
-                senlintestlist.append(sensitivity)
+            dftest['ratio'] = np.divide(dftest['output'] , dftest['target_mass'])
+            dftrain['ratio'] = np.divide(dftrain['output'] , dftrain['target_mass'])
+            dftest['log2ratio'] = np.clip(np.log2(dftest['ratio']), a_min=-2, a_max=2)
+            dftrain['log2ratio'] = np.clip(np.log2(dftrain['ratio']), a_min=-2, a_max=2)
 
-                rmslintrainlist.append(np.std(dftrain['ratio']))
-                mmslogtrainlist.append(np.mean(dftrain['log2ratio']))
-                rmslogtrainlist.append(np.std(dftrain['log2ratio']))
+            
+            ## calculate rms and stuff
+            rmslintestlist.append(np.std(dftest['ratio']))
+            mmslogtestlist.append(np.mean(dftest['log2ratio']))
+            rmslogtestlist.append(np.std(dftest['log2ratio']))
 
-                s_hist, s_edge = np.histogram(dftrain['ratio'], bins=101, range=(0,2.02))
-                binwidth = s_edge[1]-s_edge[0]
-                sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
-                senlintrainlist.append(sensitivity)
+            s_hist, s_edge = np.histogram(dftest['ratio'], bins=101, range=(0,2.02))
+            binwidth = s_edge[1]-s_edge[0]
+            sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+            senlintestlist.append(sensitivity)
+
+            rmslintrainlist.append(np.std(dftrain['ratio']))
+            mmslogtrainlist.append(np.mean(dftrain['log2ratio']))
+            rmslogtrainlist.append(np.std(dftrain['log2ratio']))
+
+            s_hist, s_edge = np.histogram(dftrain['ratio'], bins=101, range=(0,2.02))
+            binwidth = s_edge[1]-s_edge[0]
+            sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
+            senlintrainlist.append(sensitivity)
+
+        mmslog = plt.subplots(figsize=figsize)
+        rmslin = plt.subplots(figsize=figsize)
+        rmslog = plt.subplots(figsize=figsize)
+        senplt = plt.subplots(figsize=figsize)
+
+            
+        for pltobj, testval, trainval, savename, yrange in zip([mmslog, rmslin, rmslog, senplt],
+                                                               [mmslogtestlist, rmslintestlist, rmslogtestlist, senlintestlist],
+                                                               [mmslogtrainlist, rmslintrainlist, rmslogtrainlist, senlintrainlist],
+                                                               ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
+                                                               [(-.4, .3), (0, .3), (0,.4), (3,35)]):
+
+            xticks = [str(x) for x in massranges]
+            arr = list(range(len(xticks)))
+            pltobj[1].plot(trainval, label='train')
+            pltobj[1].plot(testval, label='test')
+            pltobj[1].set_xticks(arr, xticks,)
+            pltobj[1].set_xlabel('mass points')
+            plt.grid()
+            pltobj[1].legend()
+            pltobj[1].set_title(f'compare {savename} train/test performance {mod} loss{lm} mass point {massrange}')
+            pltobj[1].set_ylim([yrange[0], yrange[1]])
+            #Path(f"plots/testepoch/").mkdir(parents=True, exist_ok=True)
+            pltobj[0].savefig(f'plots/testepoch/epoch20/{savename}_train_test_{mod}_loss{lm}_masspoint{massrange}.png', bbox_inches='tight')
+            plt.close(pltobj[0])
+            
+
+        ## test overlays , diff overlays 
+        for testpltobj, diffpltobj, testval, trainval, savename, yrange, diffyrange in zip([mmslogtestoverlays, rmslintestoverlays, rmslogtestoverlays, senlintestoverlays],
+                                                                                           [mmslogdiffoverlays, rmslindiffoverlays, rmslogdiffoverlays, senlindiffoverlays],
+                                                                                           [mmslogtestlist, rmslintestlist, rmslogtestlist, senlintestlist],
+                                                                                           [mmslogtrainlist, rmslintrainlist, rmslogtrainlist, senlintrainlist],
+                                                                                           ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
+                                                                                           [(-.4, .3), (0,.3), (0,.4), (3,35)],
+                                                                                           [(-0.04, 0.02), (-0.00, 0.11), (-0.0, 0.08), (-2, 1.5) ]):
+            testpltobj[1].plot(testval, label=f'{mod} loss{lm}')
+            testpltobj[1].set_xticks(arr, xticks)
+            testpltobj[1].set_xlabel('target mass')
+            diffpltobj[1].set_xlabel('target mass') 
+            testpltobj[1].legend()
+            testpltobj[1].set_title(f'{savename} overlay {mod} loss{lm}')
+            testpltobj[1].set_ylim([yrange[0], yrange[1]])
+
+            diffpltobj[1].plot(np.array(testval)-np.array(trainval), label=f'{mod} loss{lm}')
+            diffpltobj[1].set_xticks(arr, xticks)
+            diffpltobj[1].legend()            
+            diffpltobj[1].set_title(f'{savename} difference overlay {mod} loss{lm}')
+            diffpltobj[1].set_ylim([diffyrange[0], diffyrange[1]])
 
 
-            figsize = (9,6.7)
-            mmslog = plt.subplots(figsize=figsize)
-            rmslin = plt.subplots(figsize=figsize)
-            rmslog = plt.subplots(figsize=figsize)
-            senplt = plt.subplots(figsize=figsize)
+        # rmslintestoverlays = plt.subplots(figsize=figsize)
+        # senlintestoverlays = plt.subplots(figsize=figsize)
+        # mmslogtestoverlays = plt.subplots(figsize=figsize)
+        # rmslogtestoverlays = plt.subplots(figsize=figsize)
+        # rmslindiffoverlays = plt.subplots(figsize=figsize)
+        # senlindiffoverlays = plt.subplots(figsize=figsize)
+        # rmslogdiffoverlays = plt.subplots(figsize=figsize)
+        # mmslogdiffoverlays = plt.subplots(figsize=figsize)
 
-                
-            for pltobj, testval, trainval, savename, yrange in zip([mmslog, rmslin, rmslog, senplt],
-                                                           [mmslogtestlist, rmslintestlist, rmslogtestlist, senlintestlist],
-                                                           [mmslogtrainlist, rmslintrainlist, rmslogtrainlist, senlintrainlist],
-                                                                   ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
-                                                                   [(-.4, .4), (0,.3), (0,.4), (0,15)]):
+for testpltobj, diffpltobj, savename in zip([mmslogtestoverlays, rmslintestoverlays, rmslogtestoverlays, senlintestoverlays],
+                                             [mmslogdiffoverlays, rmslindiffoverlays, rmslogdiffoverlays, senlindiffoverlays],
+                                             ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity']):
+    testpltobj[0].savefig(f'plots/testepoch/epoch20/test_overlay_{savename}.png', bbox_inches='tight')
+    diffpltobj[0].savefig(f'plots/testepoch/epoch20/diff_overlay_{savename}.png', bbox_inches='tight')
+    
 
-                xticks = [str(x) for x in epochs]
-                arr = list(range(len(xticks)))
-                pltobj[1].plot(trainval, label='train')
-                pltobj[1].plot(testval, label='test')
-                pltobj[1].set_xticks(arr, xticks,)
-                pltobj[1].set_xlabel('epochs')
-                plt.grid()
-                pltobj[1].legend()
-                pltobj[1].set_title(f'compare {savename} train/test performance {mod} loss{lm} mass point {massrange}')
-                pltobj[1].set_ylim([yrange[0], yrange[1]])
-                #Path(f"plots/testepoch/").mkdir(parents=True, exist_ok=True)
-                pltobj[0].savefig(f'plots/testepoch/{savename}_train_test_{mod}_loss{lm}_masspoint{massrange}.png', bbox_inches='tight')
-                plt.close(pltobj[0])
-                
+## create distribution of predicted mass points
+## how to do this for the 2018...may have to split it into 3 regions
+masseslist = [[11,11.5,12,12.5], [13.5,14,15,16,17], [18.5, 20, 21.5, 23, 25], [27.5, 30, 32.5, 35, 37], [40, 42.5,45,47.5, 50], [52.5, 55, 57.5, 60, 62.5]]#[[12,20,30,40,50,60], [15,25,35,45,55], [8.5,9,9.5,10,10.5,11, 11.5]]
+rangelists = [[10,18], [10,27], [10, 50], [15,60], [23,65], [20,70]]
+binsizelist = [0.1, 0.1, 0.2, 0.5, 1, 1]
+for mod in mods:
+    for lm in [0,3]:
+        fn = f'predict/testepoch/predict_a1_calc_{mod}_regr_loss{lm}_epoch20.root'
+        f = uproot.open(fn)
+        g = f['Events']
+        df = pd.DataFrame()
+        for v in vs:
+            df[v] = np.array(g[v].array())
+        if mod == 'logMass':
+            df['output'] = np.exp(df['output'])
+            df['target_mass'] = np.exp(df['target_mass'])
+        df = df[(df['output'] > 0) & (df['target_mass'] > 0) & (df['label_H_aa_bbbb']==1) & (df['event_no']%2==1)]
+        for masses, binsize, binrange in zip(masseslist, binsizelist, rangelists):
+            fig, ax = plt.subplots(figsize=figsize)
+            numbins = round((binrange[1]-binrange[0])/binsize)
+            binbounderies = [] 
+            for mass in masses:
+                dfcut = df[np.isclose(df['target_mass'],mass, rtol=1e-03, atol=1e-05)]
+                #ax.hist(dfcut['output'], bins=numbins, range=(masses[0]*.8, masses[-1]*1.2), label=f'M-{mass}', histtype='step')
+                clippedoutput = np.clip(dfcut['output'], a_min=binrange[0], a_max=binrange[1])
+                ax.hist(clippedoutput, bins=numbins, range=(binrange[0], binrange[1]), label=f'M-{mass}', histtype='step')
+            ax.set_title(f'm(a) regressor trained on mH-125 sample {mod} loss{lm} range {masses[0]}-{masses[-1]}')
+            ax.set_xlabel('Predicted m(a) [GeV]')
+            ax.set_ylabel('Events')
+            ax.legend()
+            fig.savefig(f'plots/testepoch/epoch20/distributions_{mod}_loss{lm}_range{masses[0]}-{masses[-1]}.png', bbox_inches='tight')
+            plt.close(fig)
+            
+
 
 sys.exit()
 
