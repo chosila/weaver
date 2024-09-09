@@ -1,24 +1,25 @@
 import os 
 
 
-parts = ['H', 'a1', 'a2']
-for part in parts:
+#parts = ['H', 'a1', 'a2']
+#for part in parts:
     
 
-    with open(f'train_GLUGLU_{part}.sh', 'w+') as txtf:
+#     with open(f'train_GLUGLU_{part}.sh', 'w+') as txtf:
         
-        txt = f'''source ~/.bashrc
-source ~/.bash_profile
-conda activate weaver
-cd /home/chosila/Projects/weaver
-python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH_01J_Pt150_M-*' --data-config data/{part}_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/GluGlu_{part}_regr '''
-        txtf.write(txt)
+#         txt = f'''source ~/.bashrc
+# source ~/.bash_profile
+# conda activate weaver
+# cd /home/chosila/Projects/weaver
+# python train.py --regression-mode --data-train '/home/chosila/Projects/CMSSW_10_6_32/src/DeepNTuples/Ntuples/AK8_HToAATo4B_GluGluH_01J_Pt150_M-*' --data-config data/{part}_mass_regr.yaml --network-config networks/particle_net_pf_sv_mass_regression.py --num-epochs 40 --model-prefix output/GluGlu_{part}_regr '''
+#         txtf.write(txt)
 
 
 
 ## create modified mass target training scripts
-mods = ['mass', 'logMass', 'massOverPT', 'logMassOverPT', 'ptOverMass', 'massOverfj_mass']
-parts = ['H_calc', 'a1' ,'a2']
+mods = ['mass', 'logMass']#['mass', 'logMass', 'massOverPT', 'logMassOverPT', 'ptOverMass', 'massOverfj_mass']
+parts = ['a1'] #['H_calc', 'a1' ,'a2']
+lossmode = [0,3]
 for part in parts:
     for mod in mods:
         with open(f'train_wideH_{part}_{mod}.sh' ,'w+') as f:

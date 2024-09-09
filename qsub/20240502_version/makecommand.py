@@ -68,6 +68,5 @@ with open('predict_a1_2016_2017.sh', 'w+') as f:
     for mod in mods:
         for loss_mode in loss_modes:
             for year in [2016,2017]:
-                f.write(txt_epoch40.format(mod=mod, loss_mode=loss_mode, numepoch=numepoch, year=year))
-            else:
-                f.write(txt.format(mod=mod, loss_mode=loss_mode, numepoch=numepoch, year=year))
+                    f.write(txt_epoch40.format(mod=mod, loss_mode=loss_mode, numepoch=numepochs[0], year=year))
+
