@@ -219,7 +219,7 @@ def train_load(args):
 
     if args.in_memory and (args.steps_per_epoch is None or args.steps_per_epoch_val is None):
         raise RuntimeError('Must set --steps-per-epoch when using --in-memory!')
-
+    
     train_data = SimpleIterDataset(train_file_dict, args.data_config, for_training=True,
                                    load_range_and_fraction=(train_range, args.data_fraction),
                                    file_fraction=args.file_fraction,
@@ -558,9 +558,6 @@ def model_setup(args, data_config):
         loss_func = torch.nn.CrossEntropyLoss()
         _logger.warning('Loss function not defined in %s. Will use `torch.nn.CrossEntropyLoss()` by default.',
                         args.network_config)
-    print('-------------------------------------------')
-    print(model)
-    print('------------------------------------------')
     return model, model_info, loss_func
 
 
