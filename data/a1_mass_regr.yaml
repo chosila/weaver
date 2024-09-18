@@ -1,6 +1,6 @@
 
 selection:
-   # (label_H_aa_bbbb == 1) & (fj_pt > 170) & ((event_no % 2) == 0) # original
+   (label_H_aa_bbbb == 1) & (fj_pt > 170) & ((event_no % 2) == 0) # original
    ## selection for not Wide H. for wide H we have lower mass H, so we can have lower pt that still H 
    ## (label_H_aa_bbbb == 1) & (fj_pt > 200) & (fj_mass > 50) & (pfMassDecorrelatedParticleNetDiscriminatorsJetTags_XbbvsQCD > 0.1) & ((event_no % 2) == 0)
    
