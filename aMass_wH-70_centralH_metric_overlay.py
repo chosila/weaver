@@ -311,17 +311,18 @@ flist_wH_a2 = [
 #2D Distribution for the wide and central trainings, both run on m125
 flist_avga1a2
 
-for fn, plotname in zip([flist_avga1a2[0], 'predict/testepoch/predict_a1_calc_mass_regr_loss3_epoch20.root'],
-                        ['avga1a2', 'central']):
+for fn, plotname, histranges in zip([flist_avga1a2[0], 'predict/testepoch/predict_a1_calc_mass_regr_loss3_epoch20.root'],
+                                    ['avga1a2', 'central'],
+                                    [((0,150),(0,150)), ((0,65),(0,65))]):
     g = uproot.open(fn)['Events']
     df = pd.DataFrame()
     for v in vs:
         df[v] = np.array(g[v].array())
     
     fig, ax = plt.subplots()
-    colorbar = ax.hist2d(np.clip(df['target_mass'], a_min=0, a_max=150),
-                         np.clip(df['output'], a_min=0, a_max=150),
-                         norm = colors.LogNorm(), bins=50)
+    colorbar = ax.hist2d(np.clip(df['target_mass'], a_min=0, a_max=histranges[0][1]),
+                         np.clip(df['output'], a_min=0, a_max=histranges[1][1]),
+                         norm = colors.LogNorm(), bins=50, range=histranges)
     ax.set_xlabel('target')
     ax.set_ylabel('output')
     ax.axline((0,0), slope=1, color='r')

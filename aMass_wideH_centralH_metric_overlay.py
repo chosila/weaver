@@ -314,16 +314,16 @@ flist_wH_a2 = [
 flist_avga1a2
 
 for fn, plotname in zip([flist_avga1a2[0], 'predict/testepoch/predict_a1_calc_mass_regr_loss3_epoch20.root'],
-                        ['avga1a2', 'central']):
+                                    ['avga1a2', 'central']):
     g = uproot.open(fn)['Events']
     df = pd.DataFrame()
     for v in vs:
         df[v] = np.array(g[v].array())
     
     fig, ax = plt.subplots()
-    colorbar = ax.hist2d(np.clip(df['target_mass'], a_min=0, a_max=150),
-                         np.clip(df['output'], a_min=0, a_max=150),
-                         norm = colors.LogNorm(), bins=50)
+    colorbar = ax.hist2d(np.clip(df['target_mass'], a_min=0, a_max=65),
+                         np.clip(df['output'], a_min=0,      a_max=65),
+                         norm = colors.LogNorm(), bins=50, range=((0,65),(0,65)))
     ax.set_xlabel('target')
     ax.set_ylabel('output')
     ax.axline((0,0), slope=1, color='r')
