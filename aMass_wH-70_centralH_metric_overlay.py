@@ -161,7 +161,7 @@ plt.close('all')
 # Regressions to mass a1 then a2
 #Overlay 4 different trainings (bb_mass, bb_dR, bbbar_mass, bbbar_dR)
 #Make separate sets of plots for "output vs. target_mass" and "output vs. fj_gen_H_aa_bbbb_mass_a1" (then a2)
-for flist_a, apart, clipvals in zip ([flist_a1, flist_a2], ['a1', 'a2'], [(0,150), (0,80)]):    
+for flist_a, apart, histranges in zip ([flist_a1, flist_a2], ['a1', 'a2'], [((0,250),(0,250)), ((0,120),(0,120))]):    
         
     fs = [uproot.open(x) for x in flist_a]
     gs = [x['Events'] for x in fs]
@@ -183,29 +183,33 @@ for flist_a, apart, clipvals in zip ([flist_a1, flist_a2], ['a1', 'a2'], [(0,150
         name = fname.split('/')[-1].split('.')[-2]
         axdist.set_title('\n'.join(wrap(f'distribution {name} wh-70', wrapwidth)))
         axdist.legend()
+        axdist.set_xlabel('mass (GeV)')
         figdist.savefig(f'plots/wideH_aMass_overlay/{apart}_dist_overlay_{name}_wH-70.png', bbox_inches='tight')
-
+        plt.close(figdist)
+        
         ## 2d plots 
         target_output_plt = plt.subplots()
-        hist2dkwarg = {'bins' :50, }
-        clipvals = (min(df['target_mass']), max(df['target_mass']))
-        colorbar = target_output_plt[1].hist2d(df['target_mass'], np.clip(df['output'], a_min=clipvals[0], a_max=clipvals[1]), norm = colors.LogNorm(), **hist2dkwarg )
+        hist2dkwarg = {'bins' :50, 'range':histranges}
+        colorbar = target_output_plt[1].hist2d(df['target_mass'], np.clip(df['output'], a_min=histranges[1][0], a_max=histranges[1][1]), norm = colors.LogNorm(), **hist2dkwarg )
         target_output_plt[1].set_xlabel('target')
         target_output_plt[1].set_ylabel('output')
         target_output_plt[1].set_title('\n'.join(wrap(f'{apart}_output_vs_target_{name} wH-70', wrapwidth)))
+        target_output_plt[1].axline((0,0), slope=1, color='r')
         target_output_plt[0].colorbar(colorbar[3], ax=target_output_plt[1])
         target_output_plt[0].savefig(f'plots/wideH_aMass_overlay/{apart}_output_vs_target_{name}_wH-70.png', bbox_inches='tight')
+        plt.close(target_output_plt[0])
     
     
         target_massa1_plt = plt.subplots()
     
-        colorbar = target_massa1_plt[1].hist2d(df[f'fj_gen_H_aa_bbbb_mass_{apart}'], np.clip(df['output'], a_min=clipvals[0], a_max=clipvals[1]), norm = colors.LogNorm(), **hist2dkwarg)
+        colorbar = target_massa1_plt[1].hist2d(df[f'fj_gen_H_aa_bbbb_mass_{apart}'], np.clip(df['output'], a_min=histranges[1][0], a_max=histranges[1][1]), norm = colors.LogNorm(), **hist2dkwarg)
         target_massa1_plt[1].set_xlabel(f'fj_gen_H_aa_bbbb_mass_{apart}')
         target_massa1_plt[1].set_ylabel('output')
         target_massa1_plt[1].set_title('\n'.join(wrap(f'{apart}_output_vs_genMass_{apart}_{name} wH-70', wrapwidth)))
+        target_massa1_plt[1].axline((0,0), slope=1, color='r')
         target_massa1_plt[0].colorbar(colorbar[3], ax=target_massa1_plt[1])
         target_massa1_plt[0].savefig(f'plots/wideH_aMass_overlay/{apart}_output_vs_{apart}_mass_{name}_wH-70.png', bbox_inches='tight')
-
+        plt.close(target_massa1_plt[0])
 plt.close('all')
 
 
@@ -269,6 +273,10 @@ for divisor, plotname in zip(['fj_gen_H_aa_bbbb_mass_a1','fj_gen_H_aa_bbbb_mass_
                 particlename = 'a1'
             elif 'a2' in fn:
                 particlename = 'a2'
+            xticks = [f'{x}-{y}' for x,y in zip(massranges[:-2], massranges[1:])]
+            arr = list(range(len(xticks)))
+            pltobj[1].set_xticks(arr, xticks,)
+            pltobj[1].set_xlabel('mass points')
             pltobj[1].set_title(f'{particlename} {plotname} {savename} wH-70')
             pltobj[1].set_ylim([ylim[0], ylim[1]])
             pltobj[0].savefig(f'plots/wideH_aMass_overlay/{savename.replace(" ", "_")}_{particlename}_{plotname}_wH-70.png', bbox_inches='tight')
@@ -316,6 +324,7 @@ for fn, plotname in zip([flist_avga1a2[0], 'predict/testepoch/predict_a1_calc_ma
                          norm = colors.LogNorm(), bins=50)
     ax.set_xlabel('target')
     ax.set_ylabel('output')
+    ax.axline((0,0), slope=1, color='r')
     ax.set_title(f'{plotname}_output_vs_target wH-70')
     fig.colorbar(colorbar[3], ax=ax)
     fig.savefig(f'plots/wideH_aMass_overlay/{plotname}_output_vs_target_wH-70.png', bbox_inches='tight')
