@@ -72,18 +72,26 @@ senlindiffoverlays = plt.subplots(figsize=figsize)
 rmslogdiffoverlays = plt.subplots(figsize=figsize) 
 mmslogdiffoverlays = plt.subplots(figsize=figsize) 
 
-
 for num_genb in [3,4]:
-    for num_b in [3,4,34]: 
-        for mod in mods:
-            for lm in loss_modes:
+    for num_b in [3,4,34]:
+        mmslog = plt.subplots(figsize=figsize)
+        rmslin = plt.subplots(figsize=figsize)
+        rmslog = plt.subplots(figsize=figsize)
+        senplt = plt.subplots(figsize=figsize)
+        for lm in loss_modes:
+            for mod in mods:
+
+                ## we only want  3b and 34b trainings for the 3gen
+                ## and           34b and the 4b trainings for the 4gen 
+                if (num_genb==3) and (num_b==4) : continue
+                if (num_genb==4) and (num_b==3) : continue
                 rmslinlist = []
                 senlinlist = []
                 mmsloglist = []
                 rmsloglist = []
                 
                 for massrange in massranges:            
-                    fn = f'predict/34b/predict_h125_a1_M{massrange}_{mod}_34b_lm{lm}_regr.root'
+                    fn = f'predict/34b/predict_h125_a1_M{massrange}_{mod}_{num_b}b_lm{lm}_regr.root'
                     df = pd.DataFrame()
                     f = uproot.open(fn)
                     g = f['Events']
@@ -95,9 +103,10 @@ for num_genb in [3,4]:
                         df['target_mass'] = np.exp(df['target_mass'])
                     dftest = df[(df['output'] > 0) & (df['target_mass'] > 0)]
                     if num_genb == 3:
-                        df[(df['fj_gen_H_aa_bbbb_num_b_AK8']==3) & (df['fj_nbHadrons']==3)]
+                        df = df[(df['fj_gen_H_aa_bbbb_num_b_AK8']==3) & (df['fj_nbHadrons']==3)]
                     else:
-                        df[(df['fj_gen_H_aa_bbbb_num_b_AK8']>=4) & (df['fj_nbHadrons']>=4)]
+                        df = df[(df['fj_gen_H_aa_bbbb_num_b_AK8']>=4) & (df['fj_nbHadrons']>=4)]
+
                     df['ratio'] = np.divide(df['output'] , df['target_mass'])
                     df['log2ratio'] = np.clip(np.log2(df['ratio']), a_min=-2, a_max=2)
         
@@ -112,31 +121,25 @@ for num_genb in [3,4]:
                     sensitivity = np.sum(s_hist[:-1]*s_hist[:-1])*100/(np.square(np.sum(s_hist)))
                     senlinlist.append(sensitivity)
                      
-                mmslog = plt.subplots(figsize=figsize)
-                rmslin = plt.subplots(figsize=figsize)
-                rmslog = plt.subplots(figsize=figsize)
-                senplt = plt.subplots(figsize=figsize)
-        
-                    
+      
                 for pltobj, testval, savename, yrange in zip([mmslog, rmslin, rmslog, senplt],
-                                                                       [mmsloglist, rmslinlist, rmsloglist, senlinlist],                        
-                                                                       ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
-                                                                       [(-0.3, 1.3), (0,1), (0, 1), (None, None)]):
-        
-                    print(testval)
-                    #xticks = [str(x) for x in massranges]
-                    #arr = list(range(len(xticks)))
+                                                         [mmsloglist, rmslinlist, rmsloglist, senlinlist],                        
+                                                         ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
+                                                         [(-0.3, 1.3), (0,1), (0, 1), (None, None)]):
+
+                    
                     floatmassranges= [float(x) for x in massranges]
-                    pltobj[1].plot(floatmassranges, testval, 'bo')
-                    #pltobj[1].set_xticks(arr, xticks,)
-                    pltobj[1].set_xlabel('mass points')
-                    plt.grid()
-                    #pltobj[1].legend()
-                    pltobj[1].set_title(f'{savename} vs mass  performance of {mod} target {num_b}b {num_genb}gen loss{lm} ')
-                    #pltobj[1].set_ylim([yrange[0], yrange[1]])
-                    #Path(f"plots/testepoch/").mkdir(parents=True, exist_ok=True)
-                    pltobj[0].savefig(f'plots/34b/score_vs_mass_{savename}_{mod}_{num_b}b_{num_genb}gen_lm{lm}_.png', bbox_inches='tight')
-                    plt.close(pltobj[0])
+                    pltobj[1].plot(floatmassranges, testval, label=f'{mod} loss{lm}')
+
+            for pltobj, savename, yrange in zip([mmslog, rmslin, rmslog, senplt],
+                                            ['mms log ratio', 'rms ratio', 'rms log ratio', 'sensitivity'],
+                                            [(-0.3, 1.3), (0,1), (0, 1), (None, None)]):
+                pltobj[1].set_xlabel('mass points')
+                plt.grid()
+                pltobj[1].legend()
+                pltobj[1].set_title(f'{savename} vs mass  performance of {mod} target {num_genb}gen loss{lm} ')
+                pltobj[0].savefig(f'plots/34b/score_vs_mass_{savename}_{num_b}_{num_genb}gen_.png', bbox_inches  ='tight')
+                plt.close(pltobj[0])
         
 
 
@@ -148,6 +151,9 @@ rangelists = [ [10,30], [10, 45], [10,70], [10,70], [10,70]]
 #0.5
 binsizelist = [ 0.5, 0.5, 1, 1, 1]
 
+
+import sys
+sys.exit()
 
 ## create distribution of predicted mass points
 for mod in mods: 
